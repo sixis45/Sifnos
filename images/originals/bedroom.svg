@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <!-- Placeholder illustration: replace with a real photo named bedroom.jpg and run `npm run images`. -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3efe8"/>
+      <stop offset="1" stop-color="#fbf9f5"/>
+    </linearGradient>
+    <linearGradient id="view" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9cc6e6"/>
+      <stop offset=".55" stop-color="#dcebf4"/>
+      <stop offset=".56" stop-color="#3f84bd"/>
+      <stop offset="1" stop-color="#1f5f99"/>
+    </linearGradient>
+    <linearGradient id="light" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff7e6" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#fff7e6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="url(#wall)"/>
+  <!-- vaulted ceiling -->
+  <path d="M0 0 H1600 V150 C1300 60 300 60 0 150 Z" fill="#e8e1d6"/>
+  <g fill="#8a6a4f"><rect x="0" y="0" width="1600" height="26"/></g>
+
+  <!-- arched window with sea view -->
+  <path d="M640 620 V330 a160 160 0 0 1 320 0 V620 Z" fill="#e2d8ca"/>
+  <path d="M664 600 V336 a136 136 0 0 1 272 0 V600 Z" fill="url(#view)"/>
+  <rect x="796" y="200" width="8" height="400" fill="#1f5f99"/>
+  <rect x="664" y="420" width="272" height="8" fill="#1f5f99"/>
+  <path d="M664 600 V336 a136 136 0 0 1 272 0 V600" fill="none" stroke="#1f5f99" stroke-width="10"/>
+  <rect x="620" y="600" width="360" height="26" rx="6" fill="#ffffff"/>
+  <path d="M664 626 L520 1200 H1080 L936 626 Z" fill="url(#light)" opacity=".5"/>
+
+  <!-- floor -->
+  <rect y="930" width="1600" height="270" fill="#d9c7a8"/>
+  <g stroke="#c9b595" stroke-width="3"><path d="M0 1000 H1600"/><path d="M0 1080 H1600"/><path d="M0 1160 H1600"/></g>
+
+  <!-- built-in masonry bed -->
+  <rect x="330" y="760" width="940" height="200" rx="18" fill="#ffffff"/>
+  <rect x="330" y="940" width="940" height="20" fill="#ebe5da"/>
+  <rect x="360" y="690" width="880" height="110" rx="26" fill="#ffffff"/>
+  <path d="M360 760 H1240 V830 a30 30 0 0 1 -30 30 H390 a30 30 0 0 1 -30 -30 Z" fill="#2b6da6"/>
+  <g fill="#5f93c4" opacity=".6"><rect x="360" y="790" width="880" height="8"/><rect x="360" y="816" width="880" height="8"/></g>
+  <rect x="420" y="640" width="330" height="96" rx="36" fill="#fbfaf7"/>
+  <rect x="850" y="640" width="330" height="96" rx="36" fill="#fbfaf7"/>
+  <rect x="540" y="664" width="120" height="60" rx="24" fill="#c0643b" opacity=".85"/>
+  <rect x="940" y="664" width="120" height="60" rx="24" fill="#c0643b" opacity=".85"/>
+
+  <!-- wall niches with lamp and pottery -->
+  <path d="M150 700 V600 a60 60 0 0 1 120 0 V700 Z" fill="#e6ded2"/>
+  <rect x="190" y="640" width="40" height="60" rx="6" fill="#c0643b"/>
+  <path d="M1330 700 V600 a60 60 0 0 1 120 0 V700 Z" fill="#e6ded2"/>
+  <rect x="1384" y="622" width="12" height="78" fill="#8a6a4f"/>
+  <path d="M1350 626 H1430 L1410 580 H1370 Z" fill="#f4e3c4"/>
+
+  <!-- rug -->
+  <rect x="520" y="1010" width="560" height="120" rx="10" fill="#1f5f99" opacity=".85"/>
+  <rect x="540" y="1026" width="520" height="88" rx="6" fill="none" stroke="#f4ede6" stroke-width="6" stroke-dasharray="18 14"/>
+</svg>

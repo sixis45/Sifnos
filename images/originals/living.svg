@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <!-- Placeholder illustration: replace with a real photo named living.jpg and run `npm run images`. -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1ece3"/>
+      <stop offset="1" stop-color="#faf7f1"/>
+    </linearGradient>
+    <radialGradient id="fire" cx=".5" cy=".8" r=".7">
+      <stop offset="0" stop-color="#ffd27a"/>
+      <stop offset=".5" stop-color="#f08a3c"/>
+      <stop offset="1" stop-color="#3a2a22"/>
+    </radialGradient>
+    <radialGradient id="warm" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffcf8a" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="url(#wall)"/>
+  <g fill="#8a6a4f"><rect x="0" y="0" width="1600" height="30"/><rect x="200" y="30" width="24" height="40"/><rect x="700" y="30" width="24" height="40"/><rect x="1200" y="30" width="24" height="40"/></g>
+  <rect y="960" width="1600" height="240" fill="#d6c3a3"/>
+  <g stroke="#c6b18e" stroke-width="3"><path d="M0 1040 H1600"/><path d="M0 1120 H1600"/></g>
+
+  <!-- Cycladic fireplace -->
+  <circle cx="330" cy="860" r="360" fill="url(#warm)"/>
+  <path d="M150 960 V620 C150 520 250 420 330 380 V160 H420 V380 C500 420 560 520 560 620 V960 Z" fill="#ffffff"/>
+  <path d="M150 620 H560" stroke="#ebe4d8" stroke-width="16"/>
+  <path d="M220 960 V760 a110 110 0 0 1 220 0 V960 Z" fill="url(#fire)"/>
+  <g fill="#6b4a33"><rect x="250" y="918" width="160" height="22" rx="11" transform="rotate(-8 330 929)"/><rect x="260" y="924" width="150" height="22" rx="11" transform="rotate(10 335 935)"/></g>
+  <path d="M290 918 C280 880 310 860 300 820 C330 850 340 870 330 900 C350 880 360 860 356 836 C384 870 386 900 370 920 Z" fill="#ffc15a"/>
+  <path d="M310 918 C305 895 322 884 318 862 C336 882 340 900 332 918 Z" fill="#fff0b8"/>
+  <rect x="176" y="600" width="80" height="18" rx="4" fill="#c0643b"/>
+  <rect x="440" y="592" width="46" height="26" rx="6" fill="#1f5f99"/>
+
+  <!-- shelves with pottery -->
+  <rect x="760" y="300" width="360" height="14" fill="#8a6a4f"/>
+  <rect x="760" y="440" width="360" height="14" fill="#8a6a4f"/>
+  <path d="M790 300 c0-40 10-60 30-70 c20 10 30 30 30 70 Z" fill="#c0643b"/>
+  <path d="M880 300 c-10-30 0-60 30-60 c30 0 40 30 30 60 Z" fill="#1f5f99"/>
+  <rect x="980" y="248" width="60" height="52" rx="10" fill="#e2b53f"/>
+  <rect x="790" y="396" width="90" height="44" rx="8" fill="#ffffff" stroke="#d8cfc2" stroke-width="4"/>
+  <path d="M920 440 c0-44 12-64 34-72 c22 8 34 28 34 72 Z" fill="#a9542f"/>
+  <rect x="1030" y="402" width="50" height="38" rx="8" fill="#5f93c4"/>
+
+  <!-- kitchenette counter -->
+  <rect x="1180" y="640" width="420" height="330" fill="#ffffff"/>
+  <rect x="1170" y="620" width="440" height="30" rx="6" fill="#e9dfd0"/>
+  <rect x="1210" y="690" width="170" height="250" rx="6" fill="#f3efe8" stroke="#e1d9cc" stroke-width="4"/>
+  <rect x="1400" y="690" width="170" height="250" rx="6" fill="#f3efe8" stroke="#e1d9cc" stroke-width="4"/>
+  <rect x="1360" y="780" width="12" height="60" rx="6" fill="#1f5f99"/><rect x="1410" y="780" width="12" height="60" rx="6" fill="#1f5f99"/>
+  <rect x="1240" y="570" width="80" height="50" rx="12" fill="#1f5f99"/><rect x="1270" y="556" width="20" height="16" rx="4" fill="#163f66"/>
+  <path d="M1460 620 V540 a24 24 0 0 1 48 0" fill="none" stroke="#9aa3ab" stroke-width="10"/>
+
+  <!-- dining table and chairs -->
+  <rect x="700" y="760" width="420" height="24" rx="8" fill="#8a6a4f"/>
+  <rect x="730" y="784" width="20" height="176" fill="#7a5c43"/><rect x="1070" y="784" width="20" height="176" fill="#7a5c43"/>
+  <rect x="740" y="740" width="340" height="20" rx="4" fill="#ffffff" opacity=".9"/>
+  <path d="M880 740 c0-26 10-40 26-46 c16 6 26 20 26 46 Z" fill="#c0643b"/>
+  <g fill="#6f8045"><ellipse cx="892" cy="690" rx="14" ry="7"/><ellipse cx="920" cy="684" rx="14" ry="7"/><ellipse cx="906" cy="672" rx="12" ry="6"/></g>
+  <g fill="#1f5f99">
+    <rect x="620" y="640" width="14" height="320"/><rect x="600" y="820" width="140" height="18" rx="4"/><rect x="726" y="838" width="14" height="122"/>
+  </g>
+  <g fill="#1f5f99">
+    <rect x="1110" y="820" width="140" height="18" rx="4"/><rect x="1110" y="838" width="14" height="122"/><rect x="1236" y="838" width="14" height="122"/>
+  </g>
+</svg>

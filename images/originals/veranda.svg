@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <!-- Placeholder illustration: replace with a real photo named veranda.jpg and run `npm run images`. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f8fbf"/>
+      <stop offset=".45" stop-color="#c7a9bf"/>
+      <stop offset=".8" stop-color="#f3c39a"/>
+      <stop offset="1" stop-color="#fbe2b8"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6d86b3"/>
+      <stop offset="1" stop-color="#2b4a78"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fff1d0" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#fff1d0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="640" fill="url(#sky)"/>
+  <circle cx="1060" cy="640" r="330" fill="url(#glow)"/>
+  <circle cx="1060" cy="640" r="70" fill="#ffe6b3"/>
+  <g fill="#ffffff" opacity=".35">
+    <ellipse cx="380" cy="180" rx="200" ry="18"/><ellipse cx="1260" cy="260" rx="160" ry="14"/>
+  </g>
+  <path d="M120 642 C220 600 330 590 430 612 C500 626 560 636 620 642 Z" fill="#8f86a6"/>
+  <rect y="638" width="1600" height="562" fill="url(#sea)"/>
+  <g fill="#ffd9a0">
+    <rect x="1010" y="660" width="100" height="5" rx="2.5" opacity=".8"/>
+    <rect x="980" y="684" width="160" height="5" rx="2.5" opacity=".6"/>
+    <rect x="1020" y="712" width="80" height="5" rx="2.5" opacity=".6"/>
+    <rect x="960" y="744" width="200" height="6" rx="3" opacity=".4"/>
+    <rect x="1000" y="782" width="120" height="6" rx="3" opacity=".35"/>
+  </g>
+
+  <!-- whitewashed parapet with pergola posts -->
+  <rect y="780" width="1600" height="420" fill="#f4ede6"/>
+  <rect y="770" width="1600" height="24" rx="12" fill="#fffaf5"/>
+  <rect y="794" width="1600" height="14" fill="#e3d6cb"/>
+  <rect x="70" y="0" width="46" height="780" fill="#8a6a4f"/>
+  <rect x="1484" y="0" width="46" height="780" fill="#8a6a4f"/>
+  <rect x="0" y="0" width="1600" height="40" fill="#7a5c43"/>
+  <g fill="#6c513b"><rect x="180" y="40" width="22" height="30"/><rect x="520" y="40" width="22" height="30"/><rect x="860" y="40" width="22" height="30"/><rect x="1200" y="40" width="22" height="30"/></g>
+
+  <!-- stone floor -->
+  <rect y="1010" width="1600" height="190" fill="#e5d8c6"/>
+  <g stroke="#d3c3ad" stroke-width="4"><path d="M0 1070 H1600"/><path d="M0 1140 H1600"/><path d="M300 1010 L260 1200"/><path d="M800 1010 V1200"/><path d="M1300 1010 L1340 1200"/></g>
+
+  <!-- table -->
+  <ellipse cx="800" cy="1080" rx="190" ry="20" fill="#cdbba4" opacity=".7"/>
+  <rect x="580" y="872" width="440" height="22" rx="8" fill="#fbfaf7"/>
+  <rect x="580" y="892" width="440" height="10" fill="#e4ddd2"/>
+  <rect x="786" y="900" width="28" height="170" fill="#2f5d8c"/>
+  <rect x="720" y="1062" width="160" height="14" rx="7" fill="#2f5d8c"/>
+  <!-- coffee cups and a bowl of fruit -->
+  <g>
+    <rect x="660" y="838" width="44" height="36" rx="8" fill="#ffffff"/><path d="M704 848 a12 12 0 0 1 0 20" fill="none" stroke="#ffffff" stroke-width="6"/>
+    <rect x="890" y="838" width="44" height="36" rx="8" fill="#ffffff"/><path d="M934 848 a12 12 0 0 1 0 20" fill="none" stroke="#ffffff" stroke-width="6"/>
+    <path d="M750 846 h100 a50 30 0 0 1 -100 0 Z" fill="#c0643b"/>
+    <circle cx="778" cy="836" r="17" fill="#e39a3a"/><circle cx="806" cy="828" r="18" fill="#d6603a"/><circle cx="832" cy="838" r="16" fill="#e2b53f"/>
+  </g>
+
+  <!-- kafeneio chairs -->
+  <g fill="#1f5f99">
+    <rect x="380" y="760" width="16" height="320"/><rect x="520" y="760" width="16" height="320"/>
+    <rect x="380" y="780" width="156" height="14"/><rect x="380" y="820" width="156" height="12"/>
+    <rect x="360" y="930" width="200" height="20" rx="4"/>
+    <rect x="364" y="950" width="14" height="130"/><rect x="542" y="950" width="14" height="130"/>
+    <rect x="1064" y="760" width="16" height="320"/><rect x="1204" y="760" width="16" height="320"/>
+    <rect x="1064" y="780" width="156" height="14"/><rect x="1064" y="820" width="156" height="12"/>
+    <rect x="1040" y="930" width="200" height="20" rx="4"/>
+    <rect x="1044" y="950" width="14" height="130"/><rect x="1222" y="950" width="14" height="130"/>
+  </g>
+  <g fill="#d8ccb9"><rect x="366" y="930" width="188" height="10" rx="3"/><rect x="1046" y="930" width="188" height="10" rx="3"/></g>
+
+  <!-- vine leaves on the pergola -->
+  <g fill="#6f8045">
+    <ellipse cx="160" cy="70" rx="90" ry="36"/><ellipse cx="330" cy="54" rx="110" ry="40"/><ellipse cx="1280" cy="60" rx="120" ry="42"/><ellipse cx="1470" cy="80" rx="110" ry="40"/>
+  </g>
+  <g fill="#8c9c5c"><ellipse cx="250" cy="76" rx="70" ry="24"/><ellipse cx="1380" cy="84" rx="80" ry="26"/></g>
+</svg>
