@@ -1,0 +1,5 @@
+# Netlify: builds and publishes the draft preview (the same files as the gh-pages branch).
+# These settings override anything entered in the Netlify dashboard.
+[build]
+  command = "node tools/build-preview.mjs"
+  publish = "preview"

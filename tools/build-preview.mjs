@@ -85,7 +85,9 @@ await writeFile(`${OUT}/en/index.html`, html);
 
 await writeFile(`${OUT}/index.html`, ROOT_PAGE);
 await writeFile(`${OUT}/_headers`, HEADERS);
-await writeFile(`${OUT}/netlify.toml`, '[build]\n  publish = "."\n');
+// On the gh-pages branch the files are already built. Setting the command here overrides any
+// build command typed into the Netlify dashboard, so a wrong setting can't break the deploy.
+await writeFile(`${OUT}/netlify.toml`, '[build]\n  command = "echo Static site, nothing to build"\n  publish = "."\n');
 await writeFile(`${OUT}/.nojekyll`, '');
 await writeFile(`${OUT}/README.md`, README);
 

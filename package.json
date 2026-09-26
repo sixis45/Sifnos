@@ -7,7 +7,8 @@
     "images": "node tools/build-images.mjs",
     "serve": "npx --yes serve . -l 8080",
     "validate": "npx --yes html-validate en/index.html",
-    "preview:build": "node tools/build-preview.mjs"
+    "preview:build": "node tools/build-preview.mjs",
+    "build": "node tools/build-preview.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.0"
