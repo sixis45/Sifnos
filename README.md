@@ -1,19 +1,21 @@
 # Aggelis Villa Sifnos: website
 
-A modern, fast, accessible rebuild of the English home page of
-[aggelisvilla-sifnos.gr/en](https://aggelisvilla-sifnos.gr/en/).
+The English home page of [aggelisvilla-sifnos.gr/en](https://aggelisvilla-sifnos.gr/en/),
+built on the **Modern Cycladic Sanctuary** design (desktop and phone layouts plus its
+style guide).
 
-The site is plain HTML, CSS and JavaScript. It has no framework, no build step
-and no third-party requests until a visitor chooses to load the map. You can
+It's plain HTML, CSS and JavaScript, with no framework and no build step, so you can
 upload it to any web host as it is.
+
+**Draft preview:** https://sixis45.github.io/Sifnos/
 
 ```
 en/index.html          English home page (served at /en/)
-assets/css/styles.css  All styles
-assets/js/main.js      Menu, gallery lightbox, map loader, enquiry form (optional enhancements)
-assets/fonts/          Self-hosted Fraunces font (SIL Open Font License)
-assets/img/            Generated, optimised images (do not edit by hand)
-images/originals/      Source images; put your photos here
+assets/css/styles.css  All styles: phone first, desktop from 768px
+assets/js/main.js      Slideshow, booking bar, menu, photo viewer, enquiry form (optional extras)
+assets/fonts/          Self-hosted Playfair Display and Manrope (SIL Open Font License)
+assets/img/            Local pictures: drawn placeholders, icons, share image
+images/originals/      Source images for assets/img; put real photos here
 tools/build-images.mjs Turns the originals into responsive WebP images
 robots.txt, sitemap.xml
 ```
@@ -24,76 +26,64 @@ robots.txt, sitemap.xml
 npm run serve        # then open http://localhost:8080/en/
 ```
 
-## Replace the placeholder images with real photos
+## Design
 
-The images in `images/originals/*.svg` are **illustrated placeholders**. Replace
-them with real photos of the villa:
+| | |
+|---|---|
+| Colours | Primary `#0E3B63` (Aegean), secondary `#C27854` (terracotta), tertiary `#4E5F49` (olive), neutral `#F7F4EE` |
+| Fonts | Playfair Display for headings, Manrope for text and labels. Both are hosted with the site, and size-matched backup fonts stop the text jumping while they load. |
+| Phones | Compact hero with a swipeable photo card, booking card, pill facts, swipe rows for photos and island tips, and a fixed bottom bar (call, check availability, section tabs) |
+| Desktop | Full-screen rotating hero with a booking bar, feature ribbon, photo mosaic, and a three-card rates section |
 
-1. Copy your photos into `images/originals/` using these names (any of `.jpg`,
-   `.png`, `.webp`), and delete the matching `.svg`:
+## Photos: important before going live
 
-   | File name    | What to show                                  | Shape      |
-   |--------------|-----------------------------------------------|------------|
-   | `hero.jpg`    | The best sea view (large banner at the top)   | wide, 16:10 |
-   | `veranda.jpg` | The veranda / breakfast table                  | 4:3        |
-   | `bedroom.jpg` | The master bedroom                             | 4:3        |
-   | `living.jpg`  | Fireplace, dining table and kitchenette        | 4:3        |
-   | `olives.jpg`  | The olive grove with the picnic table          | 4:3        |
-   | `kastro.jpg`  | Kastro, a beach, or another island view        | 4:3        |
+**The photos come from the design mock-up. They are AI-generated and do not show
+the real villa.** They're hosted by Google (`lh3.googleusercontent.com`), so they can
+disappear at any time. If one fails to load, the page shows a local drawing instead,
+or a soft pattern where there's no drawing.
 
-2. Build the optimised images:
+Before the site goes live, replace them with real photos:
 
-   ```bash
-   npm install
-   npm run images
-   ```
+1. Put the photos in `images/originals/` with these names: `hero`, `veranda`, `bedroom`,
+   `living`, `olives`, `kastro` (`.jpg`, `.png` or `.webp`). Add more if you like.
+2. Run `npm install` and then `npm run images` to create optimised versions in `assets/img/`.
+3. In `en/index.html`, point each `<img src="https://lh3.googleusercontent.com/…">` at the
+   local file, such as `../assets/img/bedroom-1280.webp`, and update its `alt` text.
 
-   This crops each photo to the right shape (keeping the most interesting part),
-   creates small and large WebP versions for phones and desktops, and makes
-   `og-image.jpg`, the preview picture shown when the link is shared on
-   Facebook or WhatsApp.
+Or send the photos to Claude and ask for them to be put in.
 
-3. If a photo shows something different, update its `alt` text and caption in
-   `en/index.html`.
+## Content removed from the mock-up
 
-## What changed compared with the old page
+The mock-up contained details that weren't confirmed, so they are not on the page:
+guest reviews and a 4.95★ rating, a "From €120/night" price, an MHTE licence number,
+"GNTO licensed", "Best rates guaranteed", "No booking fees", "Instant host reply",
+"walk-in shower", "organic toiletries", an "ancient" olive grove, and a placeholder
+phone number. Send the real details and they can be added.
 
-- **Mobile-first, responsive layout.** Works from small phones to large
-  screens, with a sticky "Call / Check availability" bar on phones.
-- **Performance.** No jQuery or page builder. Images are in modern WebP format
-  at several sizes and lazy-loaded, the font is self-hosted and small, and
-  there is no layout shift while loading. Lighthouse (mobile) scores 98 for
-  performance and 100 for accessibility, best practices and SEO.
-- **Accessibility (WCAG 2.2 AA).** Semantic HTML, a skip link, keyboard-friendly
-  menu and photo viewer, visible focus styles, alt text, good colour contrast,
-  and respect for "reduce motion" settings. An axe-core scan reports no
-  violations.
-- **SEO.** Descriptive title and meta description, canonical URL, `hreflang`
-  links to the Greek page, Open Graph / Twitter preview tags, and
-  `LodgingBusiness` structured data (JSON-LD) for Google.
-- **Privacy (GDPR-friendly).** No cookies and no trackers. Google Maps loads only
-  after the visitor clicks "Show interactive map", and fonts are not loaded
-  from Google.
-- **Direct bookings.** Clear calls to action, the 8% long-stay offer, and an
-  enquiry form that opens the guest's email app with dates, guests and message
-  filled in. It needs no server or database.
+**Registration number:** if the villa has a property registry number (ΑΜΑ) or ΜΗΤΕ
+number, it can go in the footer.
 
-## Before going live: please check
-
-The old site could not be reached while this page was being built, so the
-content comes from public listings of the villa. Please check:
+## Also worth checking
 
 - [ ] Distances: Poulati ≈ 3 km, Seralia ≈ 3 km, Chrysopigi Monastery ≈ 11 km.
-- [ ] Phone numbers, email and address in the Contact section and footer.
+- [ ] Phone numbers, email and address.
 - [ ] The Greek page address used by the language switch: `https://aggelisvilla-sifnos.gr/`.
 - [ ] Links to Booking.com, Airbnb, Facebook and Instagram.
-- [ ] Anything to add, such as check-in/out times, parking, pets or a season calendar.
+
+## Quality checks
+
+The page passes HTML validation and has no axe-core accessibility violations at phone,
+tablet and desktop sizes. There's no sideways scrolling down to 360px wide and no layout
+shift while loading. Lighthouse (mobile) scores 90–95 for performance and 100 for
+accessibility and SEO, and those numbers were measured without the Google-hosted photos.
+The slideshow can be paused, stops when it scrolls off screen, and doesn't play at all
+for visitors who turn off animations.
 
 ## Deploying
 
-Upload `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root so the
-page is served at `https://aggelisvilla-sifnos.gr/en/`. `images/`, `tools/`,
-`package.json` and `node_modules/` are only needed on your computer.
+Upload `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root so the page is
+served at `https://aggelisvilla-sifnos.gr/en/`. `images/`, `tools/`, `package.json` and
+`node_modules/` are only needed on your computer.
 
-If the Greek site stays on its current system (such as WordPress), upload only
-`en/` and `assets/`, and keep that system's own `robots.txt` and sitemap.
+If the Greek site stays on its current system (such as WordPress), upload only `en/`
+and `assets/`, and keep that system's own `robots.txt` and sitemap.
