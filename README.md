@@ -1,7 +1,7 @@
 # Aggelis Villa Sifnos: website
 
-The English home page of [aggelisvilla-sifnos.gr/en](https://aggelisvilla-sifnos.gr/en/),
-built on the **Modern Cycladic Sanctuary** design (desktop and phone layouts plus its
+The website of [aggelisvilla-sifnos.gr](https://aggelisvilla-sifnos.gr/), in English with a Greek
+version, built on the **Modern Cycladic Sanctuary** design (desktop and phone layouts plus its
 style guide).
 
 It's plain HTML, CSS and JavaScript, with no framework and no build step, so you can
@@ -10,8 +10,9 @@ upload it to any web host as it is.
 **Draft preview:** https://sixis45.github.io/Sifnos/
 
 ```
-index.html             Greek home page (served at /), generated from the English page
-en/index.html          English home page (served at /en/)
+index.html             English home page (served at /)
+el/index.html          Greek page (served at /el/), generated from the English page
+en/index.html          Forwards the old /en/ address to /
 assets/css/styles.css  All styles: phone first, desktop from 768px
 assets/js/main.js      Slideshow, booking bar, menu, photo viewer, enquiry form (optional extras)
 assets/fonts/          Self-hosted Playfair Display and Manrope (SIL Open Font License)
@@ -23,14 +24,14 @@ robots.txt, sitemap.xml
 
 ## Greek page
 
-The Greek page (`index.html`, at `/`) is generated from the English page:
+English is the main page (`/`). The Greek page (`el/index.html`, at `/el/`) is generated from it:
 
 ```bash
 npm run greek
 ```
 
 `tools/build-greek.mjs` holds each English phrase next to its Greek translation. After
-editing text in `en/index.html`, run the command: if a phrase no longer matches, it stops
+editing text in `index.html`, run the command: if a phrase no longer matches, it stops
 and names it, so the two languages never drift apart. The EL/EN switch in the header and
 the language link in the footer move between the two pages. The slideshow buttons and the
 enquiry email follow the page's language.
@@ -43,7 +44,7 @@ a matching high-contrast serif and loads automatically for Greek text only.
 ## Preview locally
 
 ```bash
-npm run serve        # then open http://localhost:8080/en/
+npm run serve        # then open http://localhost:8080/
 ```
 
 ## Design
@@ -117,10 +118,8 @@ host updates within a minute or two.
 
 ## Deploying the real site
 
-Upload `index.html`, `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root. The
-Greek page is then served at `https://aggelisvilla-sifnos.gr/` and the English page at
-`https://aggelisvilla-sifnos.gr/en/`, the same addresses as the current site. `images/`, `tools/`, `package.json` and
+Upload `index.html`, `el/`, `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root.
+English is then served at `https://aggelisvilla-sifnos.gr/` and Greek at
+`https://aggelisvilla-sifnos.gr/el/`, and the old `/en/` address forwards to the home page. `images/`, `tools/`, `package.json` and
 `node_modules/` are only needed on your computer.
 
-If you'd rather keep the current Greek site for now, upload only `en/` and `assets/`, and
-change the two EL links in `en/index.html` back to `https://aggelisvilla-sifnos.gr/`.

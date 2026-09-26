@@ -1,38 +1,38 @@
-// Builds the Greek home page (index.html, served at /) from the English page (en/index.html),
+// Builds the Greek page (el/index.html, served at /el/) from the English home page (index.html),
 // so both languages always share the same layout.
 //
 //   npm run greek
 //
-// Every English phrase below must still exist in en/index.html. If one was edited, this script
+// Every English phrase below must still exist in index.html. If one was edited, this script
 // stops with an error naming it: update the pair here and run it again.
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const T = [
   // ---- Page setup ----
   ['<html lang="en">', '<html lang="el">'],
-  ['../assets/', 'assets/'],
+  ['"assets/', '"../assets/'],
   ['<title>Aggelis Villa Sifnos · Sea-view Cycladic cottage in Artemonas</title>',
    '<title>Βίλα Αγγελής Σίφνος · Κυκλαδίτικο σπίτι με θέα στο Αιγαίο</title>'],
   ['content="A quiet, family-run Cycladic cottage on the north-east side of Sifnos, with Aegean views from the veranda, an olive grove and room for up to 4 guests. Book direct with the family."',
    'content="Ήσυχο οικογενειακό κυκλαδίτικο σπίτι στη βορειοανατολική Σίφνο, με θέα στο Αιγαίο από τη βεράντα, ελαιώνα και χώρο για έως 4 άτομα. Κλείστε απευθείας με την οικογένεια."'],
-  ['<link rel="canonical" href="https://aggelisvilla-sifnos.gr/en/">', '<link rel="canonical" href="https://aggelisvilla-sifnos.gr/">'],
+  ['<link rel="canonical" href="https://aggelisvilla-sifnos.gr/">', '<link rel="canonical" href="https://aggelisvilla-sifnos.gr/el/">'],
   ['<meta property="og:site_name" content="Aggelis Villa Sifnos">', '<meta property="og:site_name" content="Βίλα Αγγελής Σίφνος">'],
   ['<meta property="og:title" content="Aggelis Villa Sifnos · Sea-view Cycladic cottage">', '<meta property="og:title" content="Βίλα Αγγελής Σίφνος · Κυκλαδίτικο σπίτι με θέα στη θάλασσα">'],
   ['<meta property="og:description" content="A quiet, family-run cottage on the north-east side of Sifnos with Aegean views, an olive grove and room for up to 4 guests.">',
    '<meta property="og:description" content="Ήσυχο οικογενειακό σπίτι στη βορειοανατολική Σίφνο με θέα στο Αιγαίο, ελαιώνα και χώρο για έως 4 άτομα.">'],
-  ['<meta property="og:url" content="https://aggelisvilla-sifnos.gr/en/">', '<meta property="og:url" content="https://aggelisvilla-sifnos.gr/">'],
+  ['<meta property="og:url" content="https://aggelisvilla-sifnos.gr/">', '<meta property="og:url" content="https://aggelisvilla-sifnos.gr/el/">'],
   ['<meta property="og:image:alt" content="The Aegean Sea seen from the veranda of Aggelis Villa">', '<meta property="og:image:alt" content="Το Αιγαίο από τη βεράντα της Βίλας Αγγελής">'],
   ['<meta property="og:locale" content="en_GB">\n  <meta property="og:locale:alternate" content="el_GR">',
    '<meta property="og:locale" content="el_GR">\n  <meta property="og:locale:alternate" content="en_GB">'],
-  ['<link rel="preload" href="assets/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>',
-   '<link rel="preload" href="assets/fonts/noto-serif-display-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="assets/fonts/manrope-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'],
+  ['<link rel="preload" href="../assets/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>',
+   '<link rel="preload" href="../assets/fonts/noto-serif-display-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="../assets/fonts/manrope-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'],
 
   // Structured data for Google
   ['"name": "Aggelis Villa Sifnos",\n    "alternateName": "Βίλα Αγγελής Σίφνος",', '"name": "Βίλα Αγγελής Σίφνος",\n    "alternateName": "Aggelis Villa Sifnos",'],
   ['"description": "A quiet, family-run Cycladic cottage on the north-east side of Sifnos with Aegean views from the veranda, an olive grove and room for up to 4 guests.",',
    '"description": "Ήσυχο οικογενειακό κυκλαδίτικο σπίτι στη βορειοανατολική Σίφνο με θέα στο Αιγαίο από τη βεράντα, ελαιώνα και χώρο για έως 4 άτομα.",'],
-  ['"url": "https://aggelisvilla-sifnos.gr/en/",', '"url": "https://aggelisvilla-sifnos.gr/",'],
+  ['"url": "https://aggelisvilla-sifnos.gr/",', '"url": "https://aggelisvilla-sifnos.gr/el/",'],
   ['"name": "Sea view"', '"name": "Θέα στη θάλασσα"'],
   ['"name": "Air conditioning"', '"name": "Κλιματισμός"'],
   ['"name": "Free Wi-Fi"', '"name": "Δωρεάν Wi-Fi"'],
@@ -47,9 +47,9 @@ const T = [
   ['>Aggelis Villa<', '>Βίλα Αγγελής<'],
   ['>Sifnos · Greece<', '>Σίφνος · Ελλάδα<'],
   ['aria-label="Main"', 'aria-label="Κύριο μενού"'],
-  ['<div class="lang" role="group" aria-label="Language">\n          <a href="../" hreflang="el" lang="el"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></a>\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EN</span><span class="sr-only">English</span></span>',
-   '<div class="lang" role="group" aria-label="Γλώσσα">\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></span>\n          <a href="en/" hreflang="en" lang="en"><span aria-hidden="true">EN</span><span class="sr-only">English</span></a>'],
-  ['<a href="../" hreflang="el" lang="el">Ελληνικά</a>', '<a href="en/" hreflang="en" lang="en">English</a>'],
+  ['<div class="lang" role="group" aria-label="Language">\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EN</span><span class="sr-only">English</span></span>\n          <a href="el/" hreflang="el" lang="el"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></a>',
+   '<div class="lang" role="group" aria-label="Γλώσσα">\n          <a href="../" hreflang="en" lang="en"><span aria-hidden="true">EN</span><span class="sr-only">English</span></a>\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></span>'],
+  ['<a href="el/" hreflang="el" lang="el">Ελληνικά</a>', '<a href="../" hreflang="en" lang="en">English</a>'],
   ['<li><a href="#sifnos">Discover Sifnos</a></li>', '<li><a href="#sifnos">Η Σίφνος</a></li>'],
   ['>The villa<', '>Η βίλα<'],
   ['>Amenities<', '>Παροχές<'],
@@ -264,7 +264,7 @@ const T = [
   ['<span class="sr-only">Next photo</span>', '<span class="sr-only">Επόμενη φωτογραφία</span>'],
 ];
 
-let html = await readFile('en/index.html', 'utf8');
+let html = await readFile('index.html', 'utf8');
 const missing = [];
 
 for (const [en, el] of T) {
@@ -276,10 +276,11 @@ for (const [en, el] of T) {
 }
 
 if (missing.length) {
-  console.error('These English phrases were not found in en/index.html (edited?). Update tools/build-greek.mjs:');
+  console.error('These English phrases were not found in index.html (edited?). Update tools/build-greek.mjs:');
   for (const m of missing) console.error(`  - ${m.slice(0, 110)}`);
   process.exit(1);
 }
 
-await writeFile('index.html', html);
-console.log('Greek page written to index.html');
+await mkdir('el', { recursive: true });
+await writeFile('el/index.html', html);
+console.log('Greek page written to el/index.html');

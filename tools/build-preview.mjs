@@ -1,5 +1,5 @@
 // Builds the draft preview site into ./preview for GitHub Pages, Netlify or Cloudflare Pages:
-// the Greek page (/) and English page (/en/) with a "Draft preview" label and a no-index tag,
+// the English page (/) and Greek page (/el/) with a "Draft preview" label and a no-index tag,
 // plus security headers and hosting config. It regenerates the Greek page first.
 //
 //   npm run preview:build
@@ -67,19 +67,20 @@ async function draftPage(file, { assets, familyPill, label, footerEnd, footerNot
 await import('./build-greek.mjs');
 
 await rm(OUT, { recursive: true, force: true });
-await mkdir(`${OUT}/en`, { recursive: true });
+await mkdir(`${OUT}/el`, { recursive: true });
 await cp('assets', `${OUT}/assets`, { recursive: true });
+await cp('en', `${OUT}/en`, { recursive: true }); // old /en/ address forwards to /
 
-await draftPage('en/index.html', {
-  assets: '../assets/',
+await draftPage('index.html', {
+  assets: 'assets/',
   familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Family run</span>',
   label: 'Draft preview · AI placeholder photos',
   footerEnd: 'Artemonas, Sifnos, Greece</p>',
   footerNote: 'Draft preview, not the live site',
 });
 
-await draftPage('index.html', {
-  assets: 'assets/',
+await draftPage('el/index.html', {
+  assets: '../assets/',
   familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Οικογενειακή φιλοξενία</span>',
   label: 'Προσχέδιο · ενδεικτικές φωτογραφίες AI',
   footerEnd: 'Αρτεμώνας, Σίφνος, Ελλάδα</p>',
