@@ -3,15 +3,27 @@
 const header = document.querySelector('[data-header]');
 const navToggle = document.querySelector('[data-nav-toggle]');
 const nav = document.getElementById('site-nav');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
-/* ---------- Header: solid background once the page is scrolled ---------- */
+/* ---------- Photos: use a local picture if a remote one fails to load ---------- */
 
-function updateHeader() {
-  header.classList.toggle('is-scrolled', window.scrollY > 24);
+function useFallback(img) {
+  const fallback = img.dataset.fallback;
+  if (!fallback || img.dataset.failed) {
+    img.hidden = true; // the frame behind it shows a soft pattern instead
+    return;
+  }
+  img.dataset.failed = 'true';
+  img.src = fallback;
+  const link = img.closest('a[data-lightbox]');
+  if (link) link.href = fallback;
 }
 
-updateHeader();
-window.addEventListener('scroll', updateHeader, { passive: true });
+for (const img of document.querySelectorAll('img[src^="https://"]')) {
+  img.addEventListener('error', () => useFallback(img));
+  if (img.complete && img.naturalWidth === 0) useFallback(img);
+}
 
 /* ---------- Mobile navigation ---------- */
 
@@ -39,114 +51,177 @@ document.addEventListener('click', (event) => {
   if (header.classList.contains('nav-open') && !header.contains(event.target)) setNavOpen(false);
 });
 
-window.matchMedia('(min-width: 1120px)').addEventListener('change', (event) => {
+window.matchMedia('(min-width: 1200px)').addEventListener('change', (event) => {
   if (event.matches) setNavOpen(false);
 });
 
-/* ---------- Highlight the nav link for the section in view ---------- */
+/* ---------- Highlight the menu and tab bar link for the section in view ---------- */
 
-const navLinks = new Map(
-  [...nav.querySelectorAll('.nav-list a[href^="#"]')].map((link) => [link.hash.slice(1), link]),
-);
+const sectionLinks = [...document.querySelectorAll('.nav-list a[href^="#"], .tabbar a[href^="#"]')];
 
 const sectionObserver = new IntersectionObserver(
   (entries) => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
-      for (const [id, link] of navLinks) link.classList.toggle('is-active', id === entry.target.id);
+      for (const link of sectionLinks) link.classList.toggle('is-active', link.hash === `#${entry.target.id}`);
     }
   },
   { rootMargin: '-45% 0px -50% 0px' },
 );
 
-for (const id of navLinks.keys()) {
+for (const id of new Set(sectionLinks.map((link) => link.hash.slice(1)))) {
   const section = document.getElementById(id);
   if (section) sectionObserver.observe(section);
 }
 
-/* ---------- Gallery lightbox ---------- */
+/* ---------- Horizontal swipe rows: keyboard-scrollable only when they overflow ---------- */
 
-const dialog = document.querySelector('[data-lightbox-dialog]');
-const dialogImg = document.createElement('img');
-dialogImg.className = 'lightbox-img';
-dialog.querySelector('.lightbox-figure').prepend(dialogImg);
-const dialogCaption = dialog.querySelector('[data-lightbox-caption]');
-const galleryLinks = [...document.querySelectorAll('[data-lightbox]')];
-let current = 0;
+const scrollers = document.querySelectorAll('[data-scroller]');
 
-function showPhoto(index) {
-  current = (index + galleryLinks.length) % galleryLinks.length;
-  const link = galleryLinks[current];
-  const thumb = link.querySelector('img');
-  const caption = link.closest('figure')?.querySelector('figcaption');
-  dialogImg.src = link.href;
-  dialogImg.alt = thumb.alt;
-  dialogCaption.textContent = caption ? caption.textContent : '';
+function updateScrollers() {
+  for (const el of scrollers) {
+    if (el.scrollWidth > el.clientWidth + 1) el.tabIndex = 0;
+    else el.removeAttribute('tabindex');
+  }
 }
 
-galleryLinks.forEach((link, index) => {
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    showPhoto(index);
-    dialog.showModal();
+updateScrollers();
+window.addEventListener('resize', updateScrollers, { passive: true });
+
+/* ---------- Hero slideshow ---------- */
+
+const show = document.querySelector('[data-slideshow]');
+
+if (show) {
+  const slides = [...show.querySelectorAll('.hero-slide')];
+  const dots = [...show.querySelectorAll('[data-slide-to]')];
+  const captions = show.querySelectorAll('[data-slide-caption]');
+  const captionIcons = show.querySelectorAll('[data-slide-icon]');
+  const pauseButton = show.querySelector('[data-slide-pause]');
+  const pauseLabel = show.querySelector('[data-slide-pause-label]');
+  const DURATION = 8000;
+
+  let current = 0;
+  let elapsed = 0;
+  let lastTime = null;
+  let frame = null;
+  let paused = reducedMotion.matches;
+  let inView = true;
+
+  const setProgress = (dot, value) => dot.style.setProperty('--progress', value);
+
+  function goTo(index) {
+    current = (index + slides.length) % slides.length;
+    elapsed = 0;
+    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === current));
+    dots.forEach((dot, i) => {
+      dot.setAttribute('aria-current', String(i === current));
+      setProgress(dot, i < current ? 1 : 0);
+    });
+    const { caption, icon } = slides[current].dataset;
+    captions.forEach((el) => { el.textContent = caption; });
+    captionIcons.forEach((el) => el.setAttribute('href', `#i-${icon}`));
+  }
+
+  function loop(time) {
+    if (lastTime !== null) {
+      elapsed += time - lastTime;
+      setProgress(dots[current], Math.min(elapsed / DURATION, 1));
+      if (elapsed >= DURATION) goTo(current + 1);
+    }
+    lastTime = time;
+    frame = requestAnimationFrame(loop);
+  }
+
+  function sync() {
+    const run = !paused && inView && !document.hidden;
+    if (run && frame === null) {
+      lastTime = null;
+      frame = requestAnimationFrame(loop);
+    } else if (!run && frame !== null) {
+      cancelAnimationFrame(frame);
+      frame = null;
+    }
+  }
+
+  function setPaused(value) {
+    paused = value;
+    show.classList.toggle('is-paused', paused);
+    pauseLabel.textContent = paused ? 'Play slideshow' : 'Pause slideshow';
+    sync();
+  }
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+  pauseButton.addEventListener('click', () => setPaused(!paused));
+  document.addEventListener('visibilitychange', sync);
+  reducedMotion.addEventListener('change', (event) => { if (event.matches) setPaused(true); });
+
+  new IntersectionObserver(([entry]) => {
+    inView = entry.isIntersecting;
+    sync();
+  }).observe(show);
+
+  // Swipe between slides on the phone photo card.
+  const media = show.querySelector('.hero-media');
+  let startX = null;
+  media.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'touch') startX = event.clientX;
   });
-});
+  media.addEventListener('pointerup', (event) => {
+    if (startX === null) return;
+    const delta = event.clientX - startX;
+    startX = null;
+    if (Math.abs(delta) > 40) goTo(current + (delta < 0 ? 1 : -1));
+  });
 
-dialog.querySelector('[data-lightbox-close]').addEventListener('click', () => dialog.close());
-dialog.querySelector('[data-lightbox-prev]').addEventListener('click', () => showPhoto(current - 1));
-dialog.querySelector('[data-lightbox-next]').addEventListener('click', () => showPhoto(current + 1));
+  goTo(0);
+  setPaused(paused);
+}
 
-dialog.addEventListener('keydown', (event) => {
-  if (event.key === 'ArrowLeft') showPhoto(current - 1);
-  if (event.key === 'ArrowRight') showPhoto(current + 1);
-});
-
-// Close when clicking the dark area around the photo.
-dialog.addEventListener('click', (event) => {
-  if (event.target === dialog || event.target.classList.contains('lightbox-figure')) dialog.close();
-});
-
-// Swipe between photos on touch screens.
-let touchStartX = null;
-dialog.addEventListener('pointerdown', (event) => {
-  if (event.pointerType === 'touch') touchStartX = event.clientX;
-});
-dialog.addEventListener('pointerup', (event) => {
-  if (touchStartX === null) return;
-  const delta = event.clientX - touchStartX;
-  touchStartX = null;
-  if (Math.abs(delta) > 50) showPhoto(current + (delta < 0 ? 1 : -1));
-});
-
-dialog.addEventListener('close', () => {
-  galleryLinks[current].focus();
-});
-
-/* ---------- Map: load Google Maps only when the visitor asks for it ---------- */
-
-const mapButton = document.querySelector('[data-map-load]');
-
-mapButton?.addEventListener('click', () => {
-  const map = mapButton.closest('[data-map]');
-  const iframe = document.createElement('iframe');
-  iframe.src = 'https://www.google.com/maps?q=Aggelis%20Villa%20Sifnos&output=embed';
-  iframe.title = 'Map showing the location of Aggelis Villa on Sifnos';
-  iframe.loading = 'lazy';
-  iframe.referrerPolicy = 'no-referrer-when-downgrade';
-  iframe.allowFullscreen = true;
-  map.replaceChildren(iframe);
-});
-
-/* ---------- Enquiry form: compose an email in the visitor's mail app ---------- */
-
-const form = document.querySelector('[data-enquiry]');
-const status = form.querySelector('[data-form-status]');
-const arrival = form.elements.arrival;
-const departure = form.elements.departure;
+/* ---------- Dates: no past dates, departure after arrival ---------- */
 
 function isoDate(date) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
+
+function linkDates(arrival, departure) {
+  arrival.min = isoDate(new Date());
+  departure.min = arrival.min;
+  arrival.addEventListener('change', () => {
+    if (!arrival.value) return;
+    const next = new Date(`${arrival.value}T12:00:00`);
+    next.setDate(next.getDate() + 1);
+    departure.min = isoDate(next);
+    if (departure.value && departure.value < departure.min) departure.value = '';
+  });
+}
+
+const booking = document.querySelector('[data-booking]');
+const form = document.querySelector('[data-enquiry]');
+
+linkDates(booking.elements.arrival, booking.elements.departure);
+linkDates(form.elements.arrival, form.elements.departure);
+
+/* ---------- Booking bar: carry the dates into the enquiry form ---------- */
+
+booking.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const data = new FormData(booking);
+  if (data.get('arrival')) {
+    form.elements.arrival.value = data.get('arrival');
+    form.elements.arrival.dispatchEvent(new Event('change'));
+  }
+  if (data.get('departure') && data.get('departure') > form.elements.arrival.value) {
+    form.elements.departure.value = data.get('departure');
+  }
+  form.elements.guests.value = data.get('guests') || '2';
+  document.getElementById('contact').scrollIntoView({ behavior: scrollBehavior() });
+  form.elements.name.focus({ preventScroll: true });
+});
+
+/* ---------- Enquiry form: compose an email in the visitor's mail app ---------- */
+
+const status = form.querySelector('[data-form-status]');
 
 function formatDate(value) {
   return new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {
@@ -156,17 +231,6 @@ function formatDate(value) {
     year: 'numeric',
   });
 }
-
-arrival.min = isoDate(new Date());
-departure.min = arrival.min;
-
-arrival.addEventListener('change', () => {
-  if (!arrival.value) return;
-  const next = new Date(`${arrival.value}T12:00:00`);
-  next.setDate(next.getDate() + 1);
-  departure.min = isoDate(next);
-  if (departure.value && departure.value < departure.min) departure.value = '';
-});
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -197,6 +261,68 @@ form.addEventListener('submit', (event) => {
 
   status.textContent = 'Your email app should now open with your enquiry. If it doesn’t, email us at info@aggelisvilla-sifnos.gr.';
 });
+
+/* ---------- Gallery lightbox ---------- */
+
+const dialog = document.querySelector('[data-lightbox-dialog]');
+const dialogImg = document.createElement('img');
+dialogImg.className = 'lightbox-img';
+dialogImg.referrerPolicy = 'no-referrer';
+dialog.querySelector('.lightbox-figure').prepend(dialogImg);
+const dialogCaption = dialog.querySelector('[data-lightbox-caption]');
+const galleryLinks = [...document.querySelectorAll('[data-lightbox]')];
+let currentPhoto = 0;
+
+// If the large photo fails, show the local picture for that tile instead.
+dialogImg.addEventListener('error', () => {
+  const fallback = galleryLinks[currentPhoto].querySelector('img').dataset.fallback;
+  if (!fallback) return;
+  const fallbackUrl = new URL(fallback, document.baseURI).href;
+  if (dialogImg.src !== fallbackUrl) dialogImg.src = fallbackUrl;
+});
+
+function showPhoto(index) {
+  currentPhoto = (index + galleryLinks.length) % galleryLinks.length;
+  const link = galleryLinks[currentPhoto];
+  const thumb = link.querySelector('img');
+  dialogImg.src = thumb.hidden ? '' : link.href;
+  dialogImg.alt = thumb.alt;
+  dialogCaption.textContent = link.closest('figure')?.querySelector('.g-title')?.textContent ?? '';
+}
+
+galleryLinks.forEach((link, index) => {
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    showPhoto(index);
+    dialog.showModal();
+  });
+});
+
+dialog.querySelector('[data-lightbox-close]').addEventListener('click', () => dialog.close());
+dialog.querySelector('[data-lightbox-prev]').addEventListener('click', () => showPhoto(currentPhoto - 1));
+dialog.querySelector('[data-lightbox-next]').addEventListener('click', () => showPhoto(currentPhoto + 1));
+
+dialog.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowLeft') showPhoto(currentPhoto - 1);
+  if (event.key === 'ArrowRight') showPhoto(currentPhoto + 1);
+});
+
+dialog.addEventListener('click', (event) => {
+  if (event.target === dialog || event.target.classList.contains('lightbox-figure')) dialog.close();
+});
+
+let touchStartX = null;
+dialog.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'touch') touchStartX = event.clientX;
+});
+dialog.addEventListener('pointerup', (event) => {
+  if (touchStartX === null) return;
+  const delta = event.clientX - touchStartX;
+  touchStartX = null;
+  if (Math.abs(delta) > 50) showPhoto(currentPhoto + (delta < 0 ? 1 : -1));
+});
+
+dialog.addEventListener('close', () => galleryLinks[currentPhoto].focus());
 
 /* ---------- Footer year ---------- */
 
