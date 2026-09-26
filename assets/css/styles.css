@@ -88,6 +88,7 @@
   --line: #e5e2dc;
   --field-line: #c3c6cf;
   --charcoal: #1a2530;
+  --brown: #6a4b3a;
   --focus: #e39a3a;
 
   --font-display: "Playfair Display", "Playfair Fallback", "Playfair Fallback Times", Georgia, serif;
@@ -714,30 +715,48 @@ address { font-style: normal; }
 }
 
 .hero-slide {
+  --slide-fade: 1.4s; /* keep in sync with FADE in main.js */
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.6s;
+  transition: opacity var(--slide-fade) ease, visibility 0s linear var(--slide-fade);
+}
+
+.hero-slide.is-leaving {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition: none;
 }
 
 .hero-slide.is-active {
+  z-index: 2;
   opacity: 1;
   visibility: visible;
+  transition: opacity var(--slide-fade) ease;
 }
 
 .hero-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Slow zoom. It pauses (instead of snapping back) while a photo is hidden. */
+  animation: ken-burns 24s ease-in-out infinite alternate paused;
 }
 
-.hero-slide.is-active img { animation: ken-burns 20s ease-in-out infinite alternate; }
+.hero-slide.is-active img,
+.hero-slide.is-leaving img { animation-play-state: running; }
+
+.is-paused .hero-slide img,
+.is-idle .hero-slide img { animation-play-state: paused; }
 
 .hero-media::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 3;
   background: linear-gradient(0deg, rgb(26 37 48 / 0.72), rgb(26 37 48 / 0.1) 45%, rgb(26 37 48 / 0) 70%);
   pointer-events: none;
 }
@@ -754,7 +773,7 @@ address { font-style: normal; }
   right: 0.75rem;
   bottom: 0.75rem;
   left: 0.75rem;
-  z-index: 1;
+  z-index: 4;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -917,7 +936,7 @@ address { font-style: normal; }
     min-height: 100vh;
     min-height: 100svh;
     padding: calc(var(--header-h) + env(safe-area-inset-top, 0px)) 0 0;
-    background: var(--charcoal);
+    background: var(--surface);
     color: var(--white);
     isolation: isolate;
     overflow: hidden;
@@ -931,7 +950,7 @@ address { font-style: normal; }
 
   .hero-media {
     position: absolute;
-    inset: 0;
+    inset: calc(var(--header-h) + env(safe-area-inset-top, 0px)) 0 0;
     z-index: -1;
     order: 0;
     aspect-ratio: auto;
@@ -1007,10 +1026,8 @@ address { font-style: normal; }
     padding: 1.25rem 1.5rem;
     border: 1px solid rgb(255 255 255 / 0.4);
     border-radius: var(--radius-lg);
-    background: rgb(255 255 255 / 0.96);
+    background: rgb(255 255 255 / 0.97);
     box-shadow: var(--shadow-lg);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
   }
 
   .booking-head { display: none; }
@@ -1078,9 +1095,21 @@ address { font-style: normal; }
     display: block;
     height: 100%;
     background: var(--peach);
-    transform: scaleX(var(--progress, 0));
+    transform: scaleX(0);
     transform-origin: left;
   }
+
+  .slide-dot.is-done .slide-bar span {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+
+  .slide-dot[aria-current="true"] .slide-bar span {
+    animation: slide-progress var(--slide-duration, 8s) linear forwards;
+  }
+
+  .is-paused .slide-dot .slide-bar span,
+  .is-idle .slide-dot .slide-bar span { animation-play-state: paused; }
 
   .hero-controls-end {
     display: flex;
@@ -2231,7 +2260,7 @@ address { font-style: normal; }
 .site-footer {
   padding-block: 3.5rem 2rem;
   background: var(--sand);
-  color: var(--muted);
+  color: var(--brown);
 }
 
 .footer-grid {
@@ -2256,11 +2285,19 @@ address { font-style: normal; }
 
 .footer-brand .social { margin-top: 1.5rem; }
 
-.footer-brand .social a { background: var(--white); }
+.footer-brand .social a {
+  background: var(--white);
+  color: var(--secondary);
+}
+
+.footer-brand .social a:hover {
+  background: var(--terracotta-ink);
+  color: var(--white);
+}
 
 .footer-heading {
   margin: 0 0 1rem;
-  color: var(--primary);
+  color: var(--terracotta-ink);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -2273,13 +2310,13 @@ address { font-style: normal; }
 }
 
 .footer-links a {
-  color: var(--muted);
+  color: var(--brown);
   font-size: 0.875rem;
   text-decoration: none;
 }
 
 .footer-links a:hover {
-  color: var(--cerulean);
+  color: var(--terracotta-ink);
   text-decoration: underline;
 }
 
@@ -2297,19 +2334,19 @@ address { font-style: normal; }
 
 .footer-contact .icon {
   margin-top: 0.15em;
-  color: var(--cerulean);
+  color: var(--terracotta-ink);
 }
 
 .footer-contact a {
   display: inline-block;
   min-height: 24px;
   line-height: 24px;
-  color: var(--primary);
+  color: var(--brown);
   text-decoration: none;
 }
 
 .footer-contact a:hover {
-  color: var(--cerulean);
+  color: var(--terracotta-ink);
   text-decoration: underline;
 }
 
@@ -2338,12 +2375,12 @@ address { font-style: normal; }
   top: 0;
   right: var(--gutter);
   left: var(--gutter);
-  border-top: 1px solid rgb(66 71 78 / 0.15);
+  border-top: 1px solid rgb(106 75 58 / 0.2);
 }
 
 .footer-bottom p { margin: 0; }
 
-.footer-bottom a { color: var(--primary); }
+.footer-bottom a { color: var(--terracotta-ink); }
 
 @media (min-width: 768px) {
   .site-footer { padding-top: 6rem; }
@@ -2534,7 +2571,11 @@ address { font-style: normal; }
 /* ---------- Motion ---------- */
 
 @keyframes ken-burns {
-  to { transform: scale(1.08) translate(-1%, -1%); }
+  to { transform: scale(1.06) translate(-1%, -1%); }
+}
+
+@keyframes slide-progress {
+  to { transform: scaleX(1); }
 }
 
 @keyframes pulse {
@@ -2546,6 +2587,11 @@ address { font-style: normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .slide-dot[aria-current="true"] .slide-bar span {
+    animation: none;
+    transform: scaleX(1);
+  }
+
   *,
   *::before,
   *::after {

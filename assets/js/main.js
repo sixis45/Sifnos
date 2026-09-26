@@ -6,17 +6,31 @@ const nav = document.getElementById('site-nav');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
-/* ---------- Photos: use a local picture if a remote one fails to load ---------- */
+/* ---------- Photos: large size first, then the default size, then a local picture ---------- */
+
+// Google-hosted photos take a size option such as "=w1600" at the end of the address.
+const SIZE_OPTION = /=[\w-]+$/;
 
 function useFallback(img) {
+  const link = img.closest('a[data-lightbox]');
+  const current = img.currentSrc || img.src;
+
+  if (SIZE_OPTION.test(current) && !img.dataset.triedDefaultSize) {
+    img.dataset.triedDefaultSize = 'true';
+    img.removeAttribute('srcset');
+    img.src = current.replace(SIZE_OPTION, '');
+    if (link) link.href = link.href.replace(SIZE_OPTION, '');
+    return;
+  }
+
   const fallback = img.dataset.fallback;
   if (!fallback || img.dataset.failed) {
     img.hidden = true; // the frame behind it shows a soft pattern instead
     return;
   }
   img.dataset.failed = 'true';
+  img.removeAttribute('srcset');
   img.src = fallback;
-  const link = img.closest('a[data-lightbox]');
   if (link) link.href = fallback;
 }
 
@@ -99,48 +113,79 @@ if (show) {
   const captionIcons = show.querySelectorAll('[data-slide-icon]');
   const pauseButton = show.querySelector('[data-slide-pause]');
   const pauseLabel = show.querySelector('[data-slide-pause-label]');
-  const DURATION = 8000;
+  const DURATION = 8000; // time on each photo; the progress bar is a CSS animation of the same length
+  const FADE = 1400; // must match --slide-fade in the CSS
 
   let current = 0;
-  let elapsed = 0;
-  let lastTime = null;
-  let frame = null;
+  let timer = null;
+  let remaining = DURATION;
+  let startedAt = 0;
   let paused = reducedMotion.matches;
   let inView = true;
+  let switchId = 0;
 
-  const setProgress = (dot, value) => dot.style.setProperty('--progress', value);
+  show.style.setProperty('--slide-duration', `${DURATION}ms`);
 
-  function goTo(index) {
-    current = (index + slides.length) % slides.length;
-    elapsed = 0;
+  // Wait until the next photo is decoded so the crossfade never stalls (but never wait long).
+  function ready(slide) {
+    const img = slide.querySelector('img');
+    if (!img || img.hidden || !img.decode) return Promise.resolve();
+    return Promise.race([img.decode().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 1500))]);
+  }
+
+  function activate(next) {
+    const previous = slides[current];
+    if (next !== current) {
+      // The old photo stays fully visible underneath while the new one fades in on top.
+      previous.classList.add('is-leaving');
+      setTimeout(() => previous.classList.remove('is-leaving'), FADE + 100);
+    }
+    current = next;
     slides.forEach((slide, i) => slide.classList.toggle('is-active', i === current));
     dots.forEach((dot, i) => {
       dot.setAttribute('aria-current', String(i === current));
-      setProgress(dot, i < current ? 1 : 0);
+      dot.classList.toggle('is-done', i < current);
     });
     const { caption, icon } = slides[current].dataset;
     captions.forEach((el) => { el.textContent = caption; });
     captionIcons.forEach((el) => el.setAttribute('href', `#i-${icon}`));
   }
 
-  function loop(time) {
-    if (lastTime !== null) {
-      elapsed += time - lastTime;
-      setProgress(dots[current], Math.min(elapsed / DURATION, 1));
-      if (elapsed >= DURATION) goTo(current + 1);
+  function goTo(index) {
+    const next = (index + slides.length) % slides.length;
+    const id = ++switchId;
+    clearTimeout(timer);
+    timer = null;
+    remaining = DURATION;
+    if (next === current) {
+      // Restart the progress bar on the same photo.
+      dots[current].setAttribute('aria-current', 'false');
+      void dots[current].offsetWidth;
+      dots[current].setAttribute('aria-current', 'true');
+      sync();
+      return;
     }
-    lastTime = time;
-    frame = requestAnimationFrame(loop);
+    ready(slides[next]).then(() => {
+      if (id !== switchId) return; // a newer switch has started
+      activate(next);
+      sync();
+    });
   }
 
+  // Run the timer only while playing, on screen and in a visible tab.
   function sync() {
     const run = !paused && inView && !document.hidden;
-    if (run && frame === null) {
-      lastTime = null;
-      frame = requestAnimationFrame(loop);
-    } else if (!run && frame !== null) {
-      cancelAnimationFrame(frame);
-      frame = null;
+    show.classList.toggle('is-idle', !run);
+    if (run && timer === null) {
+      startedAt = performance.now();
+      timer = setTimeout(() => {
+        timer = null;
+        goTo(current + 1);
+      }, remaining);
+    } else if (!run && timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+      remaining = Math.max(0, remaining - (performance.now() - startedAt));
     }
   }
 
@@ -174,7 +219,7 @@ if (show) {
     if (Math.abs(delta) > 40) goTo(current + (delta < 0 ? 1 : -1));
   });
 
-  goTo(0);
+  activate(0);
   setPaused(paused);
 }
 
@@ -273,8 +318,12 @@ const dialogCaption = dialog.querySelector('[data-lightbox-caption]');
 const galleryLinks = [...document.querySelectorAll('[data-lightbox]')];
 let currentPhoto = 0;
 
-// If the large photo fails, show the local picture for that tile instead.
+// If the large photo fails, try the default size, then the local picture for that tile.
 dialogImg.addEventListener('error', () => {
+  if (SIZE_OPTION.test(dialogImg.src)) {
+    dialogImg.src = dialogImg.src.replace(SIZE_OPTION, '');
+    return;
+  }
   const fallback = galleryLinks[currentPhoto].querySelector('img').dataset.fallback;
   if (!fallback) return;
   const fallbackUrl = new URL(fallback, document.baseURI).href;
