@@ -4,6 +4,40 @@ const header = document.querySelector('[data-header]');
 const navToggle = document.querySelector('[data-nav-toggle]');
 const nav = document.getElementById('site-nav');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+// Words the script shows or writes, in the page's language (English page: en/, Greek page: /).
+const TEXT = {
+  en: {
+    locale: 'en-GB',
+    pause: 'Pause slideshow',
+    play: 'Play slideshow',
+    subject: (from, to) => `Enquiry: ${from} – ${to}`,
+    greeting: 'Hello,',
+    intro: 'I would like to ask about availability at Aggelis Villa.',
+    name: 'Name',
+    email: 'Email',
+    arrival: 'Arrival',
+    departure: 'Departure',
+    guests: 'Guests',
+    nights: (n) => `${n} night${n === 1 ? '' : 's'}`,
+    sent: 'Your email app should now open with your enquiry. If it doesn’t, email us at info@aggelisvilla-sifnos.gr.',
+  },
+  el: {
+    locale: 'el-GR',
+    pause: 'Παύση προβολής',
+    play: 'Αναπαραγωγή προβολής',
+    subject: (from, to) => `Αίτημα διαθεσιμότητας: ${from} – ${to}`,
+    greeting: 'Γεια σας,',
+    intro: 'Θα ήθελα να ρωτήσω για τη διαθεσιμότητα στη Βίλα Αγγελής.',
+    name: 'Όνομα',
+    email: 'Email',
+    arrival: 'Άφιξη',
+    departure: 'Αναχώρηση',
+    guests: 'Άτομα',
+    nights: (n) => `${n} ${n === 1 ? 'νύχτα' : 'νύχτες'}`,
+    sent: 'Η εφαρμογή email σας θα ανοίξει τώρα με το αίτημά σας. Αν δεν ανοίξει, στείλτε μας email στο info@aggelisvilla-sifnos.gr.',
+  },
+}[document.documentElement.lang.startsWith('el') ? 'el' : 'en'];
 const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
 /* ---------- Photos: large size first, then the default size, then a local picture ---------- */
@@ -192,7 +226,7 @@ if (show) {
   function setPaused(value) {
     paused = value;
     show.classList.toggle('is-paused', paused);
-    pauseLabel.textContent = paused ? 'Play slideshow' : 'Pause slideshow';
+    pauseLabel.textContent = paused ? TEXT.play : TEXT.pause;
     sync();
   }
 
@@ -269,7 +303,7 @@ booking.addEventListener('submit', (event) => {
 const status = form.querySelector('[data-form-status]');
 
 function formatDate(value) {
-  return new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {
+  return new Date(`${value}T12:00:00`).toLocaleDateString(TEXT.locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -286,17 +320,17 @@ form.addEventListener('submit', (event) => {
     (new Date(`${data.get('departure')}T12:00:00`) - new Date(`${data.get('arrival')}T12:00:00`)) / 86400000,
   );
 
-  const subject = `Enquiry: ${formatDate(data.get('arrival'))} – ${formatDate(data.get('departure'))}`;
+  const subject = TEXT.subject(formatDate(data.get('arrival')), formatDate(data.get('departure')));
   const body = [
-    'Hello,',
+    TEXT.greeting,
     '',
-    'I would like to ask about availability at Aggelis Villa.',
+    TEXT.intro,
     '',
-    `Name: ${data.get('name')}`,
-    `Email: ${data.get('email')}`,
-    `Arrival: ${formatDate(data.get('arrival'))}`,
-    `Departure: ${formatDate(data.get('departure'))} (${nights} night${nights === 1 ? '' : 's'})`,
-    `Guests: ${data.get('guests')}`,
+    `${TEXT.name}: ${data.get('name')}`,
+    `${TEXT.email}: ${data.get('email')}`,
+    `${TEXT.arrival}: ${formatDate(data.get('arrival'))}`,
+    `${TEXT.departure}: ${formatDate(data.get('departure'))} (${TEXT.nights(nights)})`,
+    `${TEXT.guests}: ${data.get('guests')}`,
     '',
     data.get('message') || '',
   ].join('\n');
@@ -304,7 +338,7 @@ form.addEventListener('submit', (event) => {
   window.location.href =
     `mailto:info@aggelisvilla-sifnos.gr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.trim())}`;
 
-  status.textContent = 'Your email app should now open with your enquiry. If it doesn’t, email us at info@aggelisvilla-sifnos.gr.';
+  status.textContent = TEXT.sent;
 });
 
 /* ---------- Gallery lightbox ---------- */
