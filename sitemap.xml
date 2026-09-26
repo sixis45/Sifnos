@@ -2,8 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://aggelisvilla-sifnos.gr/</loc>
+    <lastmod>2026-09-26</lastmod>
+    <xhtml:link rel="alternate" hreflang="el" href="https://aggelisvilla-sifnos.gr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aggelisvilla-sifnos.gr/en/"/>
+  </url>
+  <url>
     <loc>https://aggelisvilla-sifnos.gr/en/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-26</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://aggelisvilla-sifnos.gr/en/"/>
     <xhtml:link rel="alternate" hreflang="el" href="https://aggelisvilla-sifnos.gr/"/>
   </url>

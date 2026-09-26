@@ -1,0 +1,285 @@
+// Builds the Greek home page (index.html, served at /) from the English page (en/index.html),
+// so both languages always share the same layout.
+//
+//   npm run greek
+//
+// Every English phrase below must still exist in en/index.html. If one was edited, this script
+// stops with an error naming it: update the pair here and run it again.
+
+import { readFile, writeFile } from 'node:fs/promises';
+
+const T = [
+  // ---- Page setup ----
+  ['<html lang="en">', '<html lang="el">'],
+  ['../assets/', 'assets/'],
+  ['<title>Aggelis Villa Sifnos · Sea-view Cycladic cottage in Artemonas</title>',
+   '<title>Βίλα Αγγελής Σίφνος · Κυκλαδίτικο σπίτι με θέα στο Αιγαίο</title>'],
+  ['content="A quiet, family-run Cycladic cottage on the north-east side of Sifnos, with Aegean views from the veranda, an olive grove and room for up to 4 guests. Book direct with the family."',
+   'content="Ήσυχο οικογενειακό κυκλαδίτικο σπίτι στη βορειοανατολική Σίφνο, με θέα στο Αιγαίο από τη βεράντα, ελαιώνα και χώρο για έως 4 άτομα. Κλείστε απευθείας με την οικογένεια."'],
+  ['<link rel="canonical" href="https://aggelisvilla-sifnos.gr/en/">', '<link rel="canonical" href="https://aggelisvilla-sifnos.gr/">'],
+  ['<meta property="og:site_name" content="Aggelis Villa Sifnos">', '<meta property="og:site_name" content="Βίλα Αγγελής Σίφνος">'],
+  ['<meta property="og:title" content="Aggelis Villa Sifnos · Sea-view Cycladic cottage">', '<meta property="og:title" content="Βίλα Αγγελής Σίφνος · Κυκλαδίτικο σπίτι με θέα στη θάλασσα">'],
+  ['<meta property="og:description" content="A quiet, family-run cottage on the north-east side of Sifnos with Aegean views, an olive grove and room for up to 4 guests.">',
+   '<meta property="og:description" content="Ήσυχο οικογενειακό σπίτι στη βορειοανατολική Σίφνο με θέα στο Αιγαίο, ελαιώνα και χώρο για έως 4 άτομα.">'],
+  ['<meta property="og:url" content="https://aggelisvilla-sifnos.gr/en/">', '<meta property="og:url" content="https://aggelisvilla-sifnos.gr/">'],
+  ['<meta property="og:image:alt" content="The Aegean Sea seen from the veranda of Aggelis Villa">', '<meta property="og:image:alt" content="Το Αιγαίο από τη βεράντα της Βίλας Αγγελής">'],
+  ['<meta property="og:locale" content="en_GB">\n  <meta property="og:locale:alternate" content="el_GR">',
+   '<meta property="og:locale" content="el_GR">\n  <meta property="og:locale:alternate" content="en_GB">'],
+  ['<link rel="preload" href="assets/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>',
+   '<link rel="preload" href="assets/fonts/noto-serif-display-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="assets/fonts/manrope-greek-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'],
+
+  // Structured data for Google
+  ['"name": "Aggelis Villa Sifnos",\n    "alternateName": "Βίλα Αγγελής Σίφνος",', '"name": "Βίλα Αγγελής Σίφνος",\n    "alternateName": "Aggelis Villa Sifnos",'],
+  ['"description": "A quiet, family-run Cycladic cottage on the north-east side of Sifnos with Aegean views from the veranda, an olive grove and room for up to 4 guests.",',
+   '"description": "Ήσυχο οικογενειακό κυκλαδίτικο σπίτι στη βορειοανατολική Σίφνο με θέα στο Αιγαίο από τη βεράντα, ελαιώνα και χώρο για έως 4 άτομα.",'],
+  ['"url": "https://aggelisvilla-sifnos.gr/en/",', '"url": "https://aggelisvilla-sifnos.gr/",'],
+  ['"name": "Sea view"', '"name": "Θέα στη θάλασσα"'],
+  ['"name": "Air conditioning"', '"name": "Κλιματισμός"'],
+  ['"name": "Free Wi-Fi"', '"name": "Δωρεάν Wi-Fi"'],
+  ['"name": "Flat-screen TV"', '"name": "Τηλεόραση επίπεδης οθόνης"'],
+  ['"name": "Kitchenette"', '"name": "Κουζινούλα"'],
+  ['"name": "Fireplace"', '"name": "Τζάκι"'],
+  ['"name": "Free breakfast"', '"name": "Δωρεάν πρωινό"'],
+
+  // ---- Header and language switch ----
+  ['>Skip to main content<', '>Μετάβαση στο κύριο περιεχόμενο<'],
+  ['<span class="sr-only">Menu</span>', '<span class="sr-only">Μενού</span>'],
+  ['>Aggelis Villa<', '>Βίλα Αγγελής<'],
+  ['>Sifnos · Greece<', '>Σίφνος · Ελλάδα<'],
+  ['aria-label="Main"', 'aria-label="Κύριο μενού"'],
+  ['<div class="lang" role="group" aria-label="Language">\n          <a href="../" hreflang="el" lang="el"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></a>\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EN</span><span class="sr-only">English</span></span>',
+   '<div class="lang" role="group" aria-label="Γλώσσα">\n          <span class="lang-current" aria-current="true"><span aria-hidden="true">EL</span><span class="sr-only">Ελληνικά</span></span>\n          <a href="en/" hreflang="en" lang="en"><span aria-hidden="true">EN</span><span class="sr-only">English</span></a>'],
+  ['<a href="../" hreflang="el" lang="el">Ελληνικά</a>', '<a href="en/" hreflang="en" lang="en">English</a>'],
+  ['<li><a href="#sifnos">Discover Sifnos</a></li>', '<li><a href="#sifnos">Η Σίφνος</a></li>'],
+  ['>The villa<', '>Η βίλα<'],
+  ['>Amenities<', '>Παροχές<'],
+  ['>Gallery<', '>Φωτογραφίες<'],
+  ['>Location<', '>Τοποθεσία<'],
+  ['>Rates<', '>Τιμές<'],
+  ['>Contact<', '>Επικοινωνία<'],
+  ['href="#contact">Check availability</a>', 'href="#contact">Διαθεσιμότητα</a>'],
+
+  // ---- Hero ----
+  ['Veranda &amp; Aegean horizon', 'Βεράντα &amp; ορίζοντας του Αιγαίου'],
+  ['alt="Whitewashed terrace with chairs and terracotta pots overlooking the Aegean in morning light"', 'alt="Ασβεστωμένη ταράτσα με καρέκλες και πήλινες γλάστρες πάνω από το Αιγαίο, στο πρωινό φως"'],
+  ['Patio &amp; olive grove', 'Αυλή &amp; ελαιώνας'],
+  ['alt="Patio with a dining table looking out to the sea, framed by olive trees"', 'alt="Αυλή με τραπέζι φαγητού και θέα στη θάλασσα, ανάμεσα σε ελιές"'],
+  ['data-caption="The master bedroom"', 'data-caption="Η κύρια κρεβατοκάμαρα"'],
+  ['alt="Whitewashed bedroom with a queen bed and soft morning light"', 'alt="Ασβεστωμένη κρεβατοκάμαρα με διπλό κρεβάτι και απαλό πρωινό φως"'],
+  ['data-caption="Evening light over the Aegean"', 'data-caption="Βραδινό φως πάνω από το Αιγαίο"'],
+  ['alt="Terrace with whitewashed walls above the deep blue Aegean in evening light"', 'alt="Βεράντα με λευκούς τοίχους πάνω από το βαθύ μπλε Αιγαίο, στο βραδινό φως"'],
+  ['Artemonas · Sifnos · Cyclades', 'Αρτεμώνας · Σίφνος · Κυκλάδες'],
+  ['>Family run<', '>Οικογενειακή φιλοξενία<'],
+  ['A quiet Cycladic cottage <em>above the Aegean</em>', 'Ένα ήσυχο κυκλαδίτικο σπίτι <em>πάνω από το Αιγαίο</em>'],
+  ['A family-run holiday home on the peaceful north-east side of Sifnos, with sea views from the veranda, an olive grove to picnic in, and room for up to four guests.',
+   'Οικογενειακό εξοχικό σπίτι στην ήσυχη βορειοανατολική πλευρά της Σίφνου, με θέα στη θάλασσα από τη βεράντα, ελαιώνα για πικνίκ και χώρο για έως τέσσερα άτομα.'],
+  ['aria-label="Check availability"', 'aria-label="Έλεγχος διαθεσιμότητας"'],
+  ['<p class="eyebrow">Direct booking</p>', '<p class="eyebrow">Απευθείας κράτηση</p>'],
+  ['>Check villa availability<', '>Δείτε τη διαθεσιμότητα<'],
+  ['>−8% for 7+ nights<', '>−8% για 7+ νύχτες<'],
+  ['>Arrival<', '>Άφιξη<'],
+  ['>Departure<', '>Αναχώρηση<'],
+  ['>Guests<', '>Άτομα<'],
+  ['>Book direct<', '>Απευθείας κράτηση<'],
+  ['8% off stays of 7+ nights', '8% έκπτωση για 7+ νύχτες'],
+  ['<use href="#i-calendar"/></svg>Check availability\n', '<use href="#i-calendar"/></svg>Διαθεσιμότητα\n'],
+  ['>01 Veranda<', '>01 Βεράντα<'],
+  ['>02 Patio<', '>02 Αυλή<'],
+  ['>03 Bedroom<', '>03 Υπνοδωμάτιο<'],
+  ['>04 Evening<', '>04 Βράδυ<'],
+  ['>Pause slideshow<', '>Παύση προβολής<'],
+  ['>Explore the villa<', '>Γνωρίστε τη βίλα<'],
+  ['<strong>Up to 4</strong> <span>guests</span>', '<strong>Έως 4</strong> <span>άτομα</span>'],
+  ['<strong>Queen bed</strong> <span>+ 2 singles</span>', '<strong>Διπλό κρεβάτι</strong> <span>+ 2 μονά</span>'],
+  ['<strong>1</strong> <span>bathroom</span>', '<strong>1</strong> <span>μπάνιο</span>'],
+  ['<strong>Sea-view</strong> <span>veranda</span>', '<strong>Βεράντα</strong> <span>με θέα θάλασσα</span>'],
+  ['<strong>Breakfast</strong> <span>included</span>', '<strong>Πρωινό</strong> <span>περιλαμβάνεται</span>'],
+
+  // ---- The villa ----
+  ['>Your own quiet corner of the Cyclades<', '>Η δική σας ήσυχη γωνιά στις Κυκλάδες<'],
+  ['Aggelis Villa is a traditional family cottage in Skaloto, Artemonas, in a very quiet and peaceful spot on the north-east side of Sifnos. From the veranda the view opens straight out over the Aegean, so the only thing on the agenda is to slow down, rest and enjoy your holiday.',
+   'Η Βίλα Αγγελής είναι ένα παραδοσιακό οικογενειακό σπίτι στο Σκαλωτό του Αρτεμώνα, σε ένα πολύ ήσυχο σημείο στη βορειοανατολική πλευρά της Σίφνου. Από τη βεράντα η θέα ανοίγει κατευθείαν στο Αιγαίο, κι έτσι το μόνο πρόγραμμα είναι να χαλαρώσετε, να ξεκουραστείτε και να απολαύσετε τις διακοπές σας.'],
+  ['The house sits in a small grove of olive trees, with a table and chairs set out in the shade for picnics. Mornings are for coffee with a sea view; on cooler days, the fireplace keeps the house cosy.',
+   'Το σπίτι βρίσκεται μέσα σε έναν μικρό ελαιώνα, με τραπέζι και καρέκλες στη σκιά για πικνίκ. Τα πρωινά είναι για καφέ με θέα στη θάλασσα· τις πιο δροσερές μέρες, το τζάκι κρατά το σπίτι ζεστό.'],
+  ['Peaceful setting, away from the crowds', 'Ήσυχο περιβάλλον, μακριά από την πολυκοσμία'],
+  ['Sweeping views of the Aegean from the veranda', 'Ανοιχτή θέα στο Αιγαίο από τη βεράντα'],
+  ['Warm, family-run hospitality', 'Ζεστή, οικογενειακή φιλοξενία'],
+  ['alt="Whitewashed veranda under a wooden pergola, looking out over the sea and olive trees"', 'alt="Ασβεστωμένη βεράντα κάτω από ξύλινη πέργκολα, με θέα στη θάλασσα και τις ελιές"'],
+  ['<strong>Morning sun</strong><span>Skaloto, Artemonas</span>', '<strong>Πρωινός ήλιος</strong><span>Σκαλωτό, Αρτεμώνας</span>'],
+  ['>Inside the house<', '>Μέσα στο σπίτι<'],
+  ['alt="Bedroom with a queen bed against whitewashed walls"', 'alt="Υπνοδωμάτιο με διπλό κρεβάτι και ασβεστωμένους τοίχους"'],
+  ['<span class="chip">Bedroom</span>', '<span class="chip">Υπνοδωμάτιο</span>'],
+  ['<h4>Master bedroom</h4><span class="room-meta">Queen bed</span>', '<h4>Κύρια κρεβατοκάμαρα</h4><span class="room-meta">Διπλό κρεβάτι</span>'],
+  ['A comfortable, calm bedroom with a queen-size bed.', 'Άνετη, ήρεμη κρεβατοκάμαρα με μεγάλο διπλό κρεβάτι.'],
+  ['alt="Open-plan room with two single beds, a fireplace, dining table and kitchenette"', 'alt="Ενιαίος χώρος με δύο μονά κρεβάτια, τζάκι, τραπεζαρία και κουζινούλα"'],
+  ['Living &amp; fireplace', 'Καθιστικό &amp; τζάκι'],
+  ['<h4>Second room</h4><span class="room-meta">2 single beds</span>', '<h4>Δεύτερο δωμάτιο</h4><span class="room-meta">2 μονά κρεβάτια</span>'],
+  ['An open-plan space with two single beds, the kitchenette, fridge-freezer, fireplace and dining table.',
+   'Ενιαίος χώρος με δύο μονά κρεβάτια, την κουζινούλα, ψυγειοκαταψύκτη, τζάκι και τραπεζαρία.'],
+  ['alt="Wooden picnic table under olive trees with the sea beyond"', 'alt="Ξύλινο τραπέζι πικνίκ κάτω από ελιές, με τη θάλασσα στο βάθος"'],
+  ['<span class="chip">Outdoors</span>', '<span class="chip">Εξωτερικοί χώροι</span>'],
+  ['<h4>Veranda &amp; olive grove</h4><span class="room-meta room-meta-olive">Sea view</span>', '<h4>Βεράντα &amp; ελαιώνας</h4><span class="room-meta room-meta-olive">Θέα θάλασσα</span>'],
+  ['A sea-view veranda for slow mornings, plus a picnic table and chairs under the olive trees.',
+   'Βεράντα με θέα στη θάλασσα για χαλαρά πρωινά, και τραπέζι πικνίκ με καρέκλες κάτω από τις ελιές.'],
+
+  // ---- Amenities ----
+  [">Everything you need, nothing you don't<", '>Ό,τι χρειάζεστε, τίποτα περιττό<'],
+  ['Simple comforts for a relaxed island stay, with breakfast included.', 'Απλές ανέσεις για χαλαρές διακοπές στο νησί, με το πρωινό να περιλαμβάνεται.'],
+  ['<strong>Aegean sea view</strong><span>From the veranda</span>', '<strong>Θέα στο Αιγαίο</strong><span>Από τη βεράντα</span>'],
+  ['<strong>Self-service breakfast</strong><span>Included, free</span>', '<strong>Πρωινό αυτοεξυπηρέτησης</strong><span>Δωρεάν</span>'],
+  ['<strong>Air conditioning</strong><span>For warm summer nights</span>', '<strong>Κλιματισμός</strong><span>Για τις ζεστές καλοκαιρινές νύχτες</span>'],
+  ['<strong>Free Wi-Fi</strong><span>Stay connected</span>', '<strong>Δωρεάν Wi-Fi</strong><span>Μείνετε συνδεδεμένοι</span>'],
+  ['<strong>Flat-screen TV</strong><span>For quiet evenings in</span>', '<strong>Τηλεόραση επίπεδης οθόνης</strong><span>Για ήσυχα βράδια στο σπίτι</span>'],
+  ['<strong>Kitchenette</strong><span>With fridge-freezer</span>', '<strong>Κουζινούλα</strong><span>Με ψυγειοκαταψύκτη</span>'],
+  ['<strong>Fireplace</strong><span>Cosy on cool evenings</span>', '<strong>Τζάκι</strong><span>Ζεστασιά τα δροσερά βράδια</span>'],
+  ['<strong>Dining table</strong><span>Beside the fireplace</span>', '<strong>Τραπεζαρία</strong><span>Δίπλα στο τζάκι</span>'],
+  ['<strong>Hairdryer</strong><span>And clothes hangers</span>', '<strong>Πιστολάκι μαλλιών</strong><span>Και κρεμάστρες ρούχων</span>'],
+  ['<strong>Olive grove picnics</strong><span>Outdoor table &amp; chairs</span>', '<strong>Πικνίκ στον ελαιώνα</strong><span>Τραπέζι &amp; καρέκλες έξω</span>'],
+
+  // ---- Gallery ----
+  ['>A glimpse of island life<', '>Μια γεύση από τη ζωή στο νησί<'],
+  ['Simple days, sea horizons and the unhurried pace of Cycladic life.', 'Απλές μέρες, θαλασσινοί ορίζοντες και οι αργοί κυκλαδίτικοι ρυθμοί.'],
+  ['<p class="swipe-hint" aria-hidden="true">Swipe<', '<p class="swipe-hint" aria-hidden="true">Σύρετε<'],
+  ['alt="Terrace above the deep blue Aegean with whitewashed walls and sailboats on calm water"', 'alt="Βεράντα πάνω από το βαθύ μπλε Αιγαίο, με λευκούς τοίχους και ιστιοφόρα στα ήρεμα νερά"'],
+  ['<span class="g-kicker">Terrace panorama</span><span class="g-title">The view from the veranda</span>', '<span class="g-kicker">Πανοραμική βεράντα</span><span class="g-title">Η θέα από τη βεράντα</span>'],
+  ['alt="Coffee and pastries on an outdoor table with sunrise light on the sea"', 'alt="Καφές και γλυκά σε τραπέζι έξω, με το φως της ανατολής στη θάλασσα"'],
+  ['<span class="g-kicker">Early morning</span><span class="g-title">Morning coffee on the veranda</span>', '<span class="g-kicker">Νωρίς το πρωί</span><span class="g-title">Πρωινός καφές στη βεράντα</span>'],
+  ['alt="Whitewashed bedroom with a queen bed and an arched alcove"', 'alt="Ασβεστωμένη κρεβατοκάμαρα με διπλό κρεβάτι και τοξωτή κόγχη"'],
+  ['<span class="g-kicker">Rest</span><span class="g-title">The master bedroom</span>', '<span class="g-kicker">Ξεκούραση</span><span class="g-title">Η κύρια κρεβατοκάμαρα</span>'],
+  ['alt="Cottage interior with a corner fireplace, dining table and kitchenette"', 'alt="Εσωτερικό του σπιτιού με γωνιακό τζάκι, τραπεζαρία και κουζινούλα"'],
+  ['<span class="g-kicker">Indoors</span><span class="g-title">Fireplace &amp; kitchenette</span>', '<span class="g-kicker">Μέσα</span><span class="g-title">Τζάκι &amp; κουζινούλα</span>'],
+  ['alt="Picnic under olive trees on a sunny hill, looking out toward the sea"', 'alt="Πικνίκ κάτω από ελιές σε ηλιόλουστο λόφο, με θέα προς τη θάλασσα"'],
+  ['<span class="g-kicker">Outdoors</span><span class="g-title">Picnics in the olive grove</span>', '<span class="g-kicker">Στην ύπαιθρο</span><span class="g-title">Πικνίκ στον ελαιώνα</span>'],
+  ['alt="The clifftop village of Kastro above the sea at dusk"', 'alt="Το Κάστρο πάνω στον βράχο, πάνω από τη θάλασσα, το σούρουπο"'],
+  ['<span class="g-kicker">A short drive away</span><span class="g-title">Kastro at dusk</span>', '<span class="g-kicker">Λίγα λεπτά με το αυτοκίνητο</span><span class="g-title">Το Κάστρο το σούρουπο</span>'],
+
+  // ---- Location ----
+  ['>Peaceful, yet close to it all<', '>Ήσυχα, αλλά κοντά σε όλα<'],
+  ["The villa is in Skaloto, Artemonas, on the quiet north-east side of the island. You're away from the bustle, but just a short drive from Artemonas and Apollonia, the island's capital, with their tavernas, cafés and shops.",
+   'Η βίλα βρίσκεται στο Σκαλωτό του Αρτεμώνα, στην ήσυχη βορειοανατολική πλευρά του νησιού. Είστε μακριά από τη φασαρία, αλλά λίγα λεπτά με το αυτοκίνητο από τον Αρτεμώνα και την Απολλωνία, την πρωτεύουσα του νησιού, με τις ταβέρνες, τα καφέ και τα μαγαζιά τους.'],
+  ['>Poulati Beach<', '>Παραλία Πουλάτι<'],
+  ['>Seralia Beach<', '>Παραλία Σεράλια<'],
+  ['>Chrysopigi Monastery<', '>Μονή Χρυσοπηγής<'],
+  ['Artemonas &amp; Apollonia', 'Αρτεμώνας &amp; Απολλωνία'],
+  ['>≈ 3 km<', '>≈ 3 χλμ.<'],
+  ['>≈ 11 km<', '>≈ 11 χλμ.<'],
+  ['>Short drive<', '>Λίγα λεπτά<'],
+  ['</svg>Getting here</h3>', '</svg>Πώς θα έρθετε</h3>'],
+  ["Ferries arrive at Kamares, the island's port, from Piraeus (Athens) and neighbouring Cycladic islands.",
+   'Τα πλοία φτάνουν στις Καμάρες, το λιμάνι του νησιού, από τον Πειραιά (Αθήνα) και τα γειτονικά νησιά των Κυκλάδων.'],
+  ['A car or scooter is the easiest way to reach Skaloto and explore Sifnos.', 'Με αυτοκίνητο ή μηχανάκι φτάνετε πιο εύκολα στο Σκαλωτό και γνωρίζετε τη Σίφνο.'],
+  ['<p>Skaloto, Artemonas · Sifnos 840 03</p>', '<p>Σκαλωτό, Αρτεμώνας · Σίφνος 840 03</p>'],
+  ['>North-east Sifnos<', '>Βορειοανατολική Σίφνος<'],
+  ['<p class="map-pin-sub">Skaloto, Artemonas</p>', '<p class="map-pin-sub">Σκαλωτό, Αρτεμώνας</p>'],
+  ['Open in Google Maps<span class="sr-only">', 'Άνοιγμα στους Χάρτες Google<span class="sr-only">'],
+  ['<span class="sr-only">Google Maps (opens in a new tab)</span>', '<span class="sr-only">Χάρτες Google (ανοίγει σε νέα καρτέλα)</span>'],
+  ['(opens in a new tab)', '(ανοίγει σε νέα καρτέλα)'],
+  ['A short drive from Artemonas and Apollonia.', 'Λίγα λεπτά με το αυτοκίνητο από τον Αρτεμώνα και την Απολλωνία.'],
+
+  // ---- Discover Sifnos ----
+  ['<p class="eyebrow">Discover Sifnos</p>', '<p class="eyebrow">Ανακαλύψτε τη Σίφνο</p>'],
+  ['>An island of flavours, footpaths and whitewashed villages<', '>Ένα νησί με γεύσεις, μονοπάτια και ασβεστωμένα χωριά<'],
+  ['Sifnos, in the western Cyclades, is loved for its authentic villages, its cooking and its unhurried pace.',
+   'Η Σίφνος, στις Δυτικές Κυκλάδες, είναι αγαπημένη για τα αυθεντικά χωριά της, την κουζίνα της και τους αργούς ρυθμούς της.'],
+  ['alt="Whitewashed houses and stone arches of a clifftop village above the sea"', 'alt="Ασβεστωμένα σπίτια και πέτρινες καμάρες σε χωριό πάνω σε βράχο, πάνω από τη θάλασσα"'],
+  ['<span class="chip">History</span>', '<span class="chip">Ιστορία</span>'],
+  ['<h3>Kastro</h3>', '<h3>Κάστρο</h3>'],
+  ["The island's medieval former capital, perched above the sea on the east coast, is full of narrow lanes, arches and whitewashed houses.",
+   'Η μεσαιωνική πρώην πρωτεύουσα του νησιού, σκαρφαλωμένη πάνω από τη θάλασσα στην ανατολική ακτή, είναι γεμάτη στενά δρομάκια, καμάρες και ασβεστωμένα σπίτια.'],
+  ['alt="Turquoise water in a rocky cove"', 'alt="Τιρκουάζ νερά σε βραχώδη κολπίσκο"'],
+  ['Sea &amp; sand', 'Θάλασσα &amp; άμμος'],
+  ['<h3>Beaches</h3>', '<h3>Παραλίες</h3>'],
+  ['Swim in the deep blue water at nearby Poulati and Seralia, or head south to the sandy bays of Platis Gialos and Vathi.',
+   'Κολυμπήστε στα βαθιά μπλε νερά στο κοντινό Πουλάτι και στα Σεράλια, ή κατεβείτε νότια στους αμμουδερούς κόλπους του Πλατύ Γιαλού και του Βαθιού.'],
+  ['alt="White monastery on a rocky promontory above a sparkling blue sea"', 'alt="Λευκό μοναστήρι σε βραχώδες ακρωτήρι πάνω από αστραφτερή μπλε θάλασσα"'],
+  ['>Landmark<', '>Αξιοθέατο<'],
+  ["Sifnos' best-known landmark: a 17th-century monastery on a rocky outcrop above the sea, near Platis Gialos.",
+   'Το πιο γνωστό αξιοθέατο της Σίφνου: μοναστήρι του 17ου αιώνα πάνω σε βράχο στη θάλασσα, κοντά στον Πλατύ Γιαλό.'],
+  ['alt="Handmade terracotta pots drying in a pottery workshop"', 'alt="Χειροποίητα πήλινα σκεύη που στεγνώνουν σε εργαστήριο κεραμικής"'],
+  ['Food &amp; craft', 'Γεύση &amp; τέχνη'],
+  ['Food &amp; pottery', 'Κουζίνα &amp; κεραμική'],
+  ['Sifnos is famous for its cooking, including revithada, the slow-baked chickpea stew. Its centuries-old pottery tradition lives on in local workshops.',
+   'Η Σίφνος φημίζεται για την κουζίνα της, όπως η ρεβιθάδα, τα αργοψημένα ρεβίθια. Η αιωνόβια παράδοση της κεραμικής ζει ακόμη στα τοπικά εργαστήρια.'],
+  ['alt="Stone footpath between dry-stone walls with a view of the sea"', 'alt="Πέτρινο μονοπάτι ανάμεσα σε ξερολιθιές, με θέα στη θάλασσα"'],
+  ['>Trails<', '>Μονοπάτια<'],
+  ['<h3>Walking trails</h3>', '<h3>Πεζοπορικά μονοπάτια</h3>'],
+  ['A network of waymarked footpaths links villages, chapels and beaches, so you can explore the island on foot.',
+   'Ένα δίκτυο σηματοδοτημένων μονοπατιών ενώνει χωριά, ξωκλήσια και παραλίες, για να γνωρίσετε το νησί με τα πόδια.'],
+  ['alt="Village lane in the evening with bougainvillea, lanterns and taverna tables"', 'alt="Δρομάκι χωριού το βράδυ με βουκαμβίλιες, φαναράκια και τραπέζια ταβέρνας"'],
+  ['>Village life<', '>Ζωή στο χωριό<'],
+  ['Next-door villages for evening strolls, with cafés, tavernas and small shops just a short drive from the villa.',
+   'Γειτονικά χωριά για βραδινές βόλτες, με καφέ, ταβέρνες και μικρά μαγαζιά, λίγα λεπτά με το αυτοκίνητο από τη βίλα.'],
+
+  // ---- Rates ----
+  ['Rates &amp; booking', 'Τιμές &amp; κρατήσεις'],
+  ['>Book direct with the family<', '>Κλείστε απευθείας με την οικογένεια<'],
+  ["Rates depend on the season and the length of your stay. Send us your dates and we'll reply with a personal quote.",
+   'Οι τιμές εξαρτώνται από την εποχή και τη διάρκεια της διαμονής σας. Στείλτε μας τις ημερομηνίες σας και θα σας απαντήσουμε με προσωπική προσφορά.'],
+  ['</svg>Long-stay offer</span>', '</svg>Προσφορά μεγάλης διαμονής</span>'],
+  ['<p class="rate-big">8% off</p>', '<p class="rate-big">−8%</p>'],
+  ['<h3>Stays of 7 nights or more</h3>', '<h3>Για διαμονή 7 νυχτών και άνω</h3>'],
+  ['Stay a week or longer and enjoy 8% off the price of your stay.', 'Μείνετε μια εβδομάδα ή περισσότερο και απολαύστε 8% έκπτωση στην τιμή της διαμονής σας.'],
+  ['>Ask for a quote<', '>Ζητήστε προσφορά<'],
+  ['<h3>Included in every stay</h3>', '<h3>Περιλαμβάνονται σε κάθε διαμονή</h3>'],
+  ['</svg></span>Self-service breakfast</li>', '</svg></span>Πρωινό αυτοεξυπηρέτησης</li>'],
+  ['</svg></span>Free Wi-Fi</li>', '</svg></span>Δωρεάν Wi-Fi</li>'],
+  ['</svg></span>Air conditioning</li>', '</svg></span>Κλιματισμός</li>'],
+  ['</svg></span>Use of the veranda and olive grove</li>', '</svg></span>Χρήση της βεράντας και του ελαιώνα</li>'],
+  ['<h3>Prefer a booking platform?</h3>', '<h3>Προτιμάτε πλατφόρμα κρατήσεων;</h3>'],
+  ['You can also find us, along with our guest reviews, on:', 'Θα μας βρείτε επίσης, μαζί με τις κριτικές των επισκεπτών μας, στο:'],
+
+  // ---- Contact ----
+  ['>Plan your stay<', '>Οργανώστε τη διαμονή σας<'],
+  ["Tell us your dates and how many of you are coming, and we'll get back to you with availability and a personal quote.",
+   'Πείτε μας τις ημερομηνίες σας και πόσα άτομα θα έρθετε, και θα επικοινωνήσουμε μαζί σας με τη διαθεσιμότητα και προσωπική προσφορά.'],
+  ['Call the family', 'Καλέστε την οικογένεια'],
+  ['<p class="contact-label">Where we are</p>', '<p class="contact-label">Πού βρισκόμαστε</p>'],
+  ['<address>Skaloto, Artemonas<br>Sifnos, Cyclades 840 03, Greece</address>', '<address>Σκαλωτό, Αρτεμώνας<br>Σίφνος, Κυκλάδες 840 03, Ελλάδα</address>'],
+  ['>Follow us for island views<', '>Ακολουθήστε μας για εικόνες από το νησί<'],
+  ['<h3>Send an enquiry</h3>', '<h3>Στείλτε αίτημα</h3>'],
+  ['>Your name<', '>Το όνομά σας<'],
+  ['>Message <span class="optional">(optional)</span>', '>Μήνυμα <span class="optional">(προαιρετικό)</span>'],
+  ['Send enquiry<svg', 'Αποστολή αιτήματος<svg'],
+  ["This opens your email app with your enquiry filled in. We don't store any data on this website.",
+   'Ανοίγει την εφαρμογή email σας με το αίτημα έτοιμο. Δεν αποθηκεύουμε δεδομένα σε αυτόν τον ιστότοπο.'],
+
+  // ---- Footer ----
+  ['A traditional Cycladic cottage in the hills of Artemonas, between whitewashed stone and the blue Aegean.',
+   'Ένα παραδοσιακό κυκλαδίτικο σπίτι στους λόφους του Αρτεμώνα, ανάμεσα σε ασβεστωμένη πέτρα και το γαλάζιο Αιγαίο.'],
+  ['aria-label="Footer"', 'aria-label="Υποσέλιδο"'],
+  ['<p class="footer-heading">Explore</p>', '<p class="footer-heading">Εξερευνήστε</p>'],
+  ['<span>Skaloto, Artemonas, Sifnos 840 03, Cyclades, Greece</span>', '<span>Σκαλωτό, Αρτεμώνας, Σίφνος 840 03, Κυκλάδες, Ελλάδα</span>'],
+  ['Aggelis Villa Sifnos · Artemonas, Sifnos, Greece</p>', 'Βίλα Αγγελής Σίφνος · Αρτεμώνας, Σίφνος, Ελλάδα</p>'],
+
+  // ---- Phone bar and photo viewer ----
+  ['aria-label="Quick links"', 'aria-label="Γρήγοροι σύνδεσμοι"'],
+  ['<strong>8% off 7+ nights</strong>', '<strong>−8% για 7+ νύχτες</strong>'],
+  ['href="#contact">Check availability<svg', 'href="#contact">Διαθεσιμότητα<svg'],
+  ['</svg>Home</a>', '</svg>Αρχική</a>'],
+  ['</svg>Villa</a>', '</svg>Βίλα</a>'],
+  ['</svg>Sifnos</a>', '</svg>Σίφνος</a>'],
+  ['aria-label="Photo viewer"', 'aria-label="Προβολή φωτογραφιών"'],
+  ['<span class="sr-only">Close</span>', '<span class="sr-only">Κλείσιμο</span>'],
+  ['<span class="sr-only">Previous photo</span>', '<span class="sr-only">Προηγούμενη φωτογραφία</span>'],
+  ['<span class="sr-only">Next photo</span>', '<span class="sr-only">Επόμενη φωτογραφία</span>'],
+];
+
+let html = await readFile('en/index.html', 'utf8');
+const missing = [];
+
+for (const [en, el] of T) {
+  if (!html.includes(en)) {
+    missing.push(en);
+    continue;
+  }
+  html = html.split(en).join(el);
+}
+
+if (missing.length) {
+  console.error('These English phrases were not found in en/index.html (edited?). Update tools/build-greek.mjs:');
+  for (const m of missing) console.error(`  - ${m.slice(0, 110)}`);
+  process.exit(1);
+}
+
+await writeFile('index.html', html);
+console.log('Greek page written to index.html');

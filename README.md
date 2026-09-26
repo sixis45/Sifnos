@@ -10,6 +10,7 @@ upload it to any web host as it is.
 **Draft preview:** https://sixis45.github.io/Sifnos/
 
 ```
+index.html             Greek home page (served at /), generated from the English page
 en/index.html          English home page (served at /en/)
 assets/css/styles.css  All styles: phone first, desktop from 768px
 assets/js/main.js      Slideshow, booking bar, menu, photo viewer, enquiry form (optional extras)
@@ -19,6 +20,25 @@ images/originals/      Source images for assets/img; put real photos here
 tools/build-images.mjs Turns the originals into responsive WebP images
 robots.txt, sitemap.xml
 ```
+
+## Greek page
+
+The Greek page (`index.html`, at `/`) is generated from the English page:
+
+```bash
+npm run greek
+```
+
+`tools/build-greek.mjs` holds each English phrase next to its Greek translation. After
+editing text in `en/index.html`, run the command: if a phrase no longer matches, it stops
+and names it, so the two languages never drift apart. The EL/EN switch in the header and
+the language link in the footer move between the two pages. The slideshow buttons and the
+enquiry email follow the page's language.
+
+Greek headings use Noto Serif Display, because Playfair Display has no Greek letters. It's
+a matching high-contrast serif and loads automatically for Greek text only.
+
+**Please ask a native speaker to read the Greek text through before launch.**
 
 ## Preview locally
 
@@ -97,9 +117,10 @@ host updates within a minute or two.
 
 ## Deploying the real site
 
-Upload `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root so the page is
-served at `https://aggelisvilla-sifnos.gr/en/`. `images/`, `tools/`, `package.json` and
+Upload `index.html`, `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root. The
+Greek page is then served at `https://aggelisvilla-sifnos.gr/` and the English page at
+`https://aggelisvilla-sifnos.gr/en/`, the same addresses as the current site. `images/`, `tools/`, `package.json` and
 `node_modules/` are only needed on your computer.
 
-If the Greek site stays on its current system (such as WordPress), upload only `en/`
-and `assets/`, and keep that system's own `robots.txt` and sitemap.
+If you'd rather keep the current Greek site for now, upload only `en/` and `assets/`, and
+change the two EL links in `en/index.html` back to `https://aggelisvilla-sifnos.gr/`.

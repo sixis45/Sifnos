@@ -1,5 +1,6 @@
 // Builds the draft preview site into ./preview for GitHub Pages, Netlify or Cloudflare Pages:
-// the site files plus a "Draft preview" label, a no-index tag, security headers and hosting config.
+// the Greek page (/) and English page (/en/) with a "Draft preview" label and a no-index tag,
+// plus security headers and hosting config. It regenerates the Greek page first.
 //
 //   npm run preview:build
 //
@@ -36,21 +37,6 @@ const HEADERS = `/*
   Cache-Control: public, max-age=31536000, immutable
 `;
 
-const ROOT_PAGE = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="refresh" content="0; url=en/">
-  <title>Aggelis Villa Sifnos</title>
-</head>
-<body>
-  <p><a href="en/">Aggelis Villa Sifnos (English)</a></p>
-</body>
-</html>
-`;
-
 const README = `# Aggelis Villa: hosted preview
 
 Built by \`npm run preview:build\` from \`claude/aggelis-villa-modernize-ye670t\`. It is
@@ -58,32 +44,48 @@ published by GitHub Pages and can also be connected to Netlify or Cloudflare Pag
 (no build command; publish this folder as it is). Edit the site on the work branch, not here.
 `;
 
-function replaceOnce(html, from, to) {
-  if (!html.includes(from)) throw new Error(`Preview build: could not find "${from.slice(0, 60)}…" in en/index.html`);
+function replaceOnce(html, file, from, to) {
+  if (!html.includes(from)) throw new Error(`Preview build: could not find "${from.slice(0, 60)}…" in ${file}`);
   return html.replace(from, to);
 }
 
+// Mark a page as a draft: no-index tag, a label in the hero and a note in the footer.
+async function draftPage(file, { assets, familyPill, label, footerEnd, footerNote }) {
+  let html = await readFile(file, 'utf8');
+  html = replaceOnce(html, file,
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n  <meta name="robots" content="noindex, nofollow">');
+  html = replaceOnce(html, file,
+    `<link rel="stylesheet" href="${assets}css/styles.css">`,
+    `<link rel="stylesheet" href="${assets}css/styles.css">\n  <style>.pill.pill-draft { border: 0; background: #ffdbcc; color: #713718; letter-spacing: 0.04em; text-transform: none; }</style>`);
+  html = replaceOnce(html, file, familyPill, `${familyPill}\n            <span class="pill pill-draft">${label}</span>`);
+  html = replaceOnce(html, file, footerEnd, footerEnd.replace('</p>', ` · ${footerNote}</p>`));
+  await writeFile(`${OUT}/${file}`, html);
+}
+
+// The Greek page is generated from the English one, so build it first.
+await import('./build-greek.mjs');
+
 await rm(OUT, { recursive: true, force: true });
-await mkdir(OUT);
-await cp('en', `${OUT}/en`, { recursive: true });
+await mkdir(`${OUT}/en`, { recursive: true });
 await cp('assets', `${OUT}/assets`, { recursive: true });
 
-let html = await readFile('en/index.html', 'utf8');
-html = replaceOnce(html,
-  '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-  '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n  <meta name="robots" content="noindex, nofollow">');
-html = replaceOnce(html,
-  '<link rel="stylesheet" href="../assets/css/styles.css">',
-  '<link rel="stylesheet" href="../assets/css/styles.css">\n  <style>.pill.pill-draft { border: 0; background: #ffdbcc; color: #713718; letter-spacing: 0.04em; text-transform: none; }</style>');
-html = replaceOnce(html,
-  '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Family run</span>',
-  '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Family run</span>\n            <span class="pill pill-draft">Draft preview · AI placeholder photos</span>');
-html = replaceOnce(html,
-  'Artemonas, Sifnos, Greece</p>',
-  'Artemonas, Sifnos, Greece · Draft preview, not the live site</p>');
-await writeFile(`${OUT}/en/index.html`, html);
+await draftPage('en/index.html', {
+  assets: '../assets/',
+  familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Family run</span>',
+  label: 'Draft preview · AI placeholder photos',
+  footerEnd: 'Artemonas, Sifnos, Greece</p>',
+  footerNote: 'Draft preview, not the live site',
+});
 
-await writeFile(`${OUT}/index.html`, ROOT_PAGE);
+await draftPage('index.html', {
+  assets: 'assets/',
+  familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Οικογενειακή φιλοξενία</span>',
+  label: 'Προσχέδιο · ενδεικτικές φωτογραφίες AI',
+  footerEnd: 'Αρτεμώνας, Σίφνος, Ελλάδα</p>',
+  footerNote: 'Προσχέδιο, όχι ο τελικός ιστότοπος',
+});
+
 await writeFile(`${OUT}/_headers`, HEADERS);
 // On the gh-pages branch the files are already built. Setting the command here overrides any
 // build command typed into the Netlify dashboard, so a wrong setting can't break the deploy.
