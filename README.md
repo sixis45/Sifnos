@@ -79,7 +79,23 @@ accessibility and SEO, and those numbers were measured without the Google-hosted
 The slideshow can be paused, stops when it scrolls off screen, and doesn't play at all
 for visitors who turn off animations.
 
-## Deploying
+## Hosting the draft preview
+
+`npm run preview:build` creates `./preview`. That folder holds the site with a
+"Draft preview" label, a no-index tag (so it doesn't compete with the real site in
+Google), security headers (`_headers`) and a `netlify.toml`. The `gh-pages` branch holds
+a copy of it, so every host below serves the same files. When `gh-pages` changes, each
+host updates within a minute or two.
+
+- **GitHub Pages** (already live): https://sixis45.github.io/Sifnos/
+- **Netlify**: on app.netlify.com choose *Add new site → Import an existing project →
+  GitHub → sixis45/Sifnos*. Pick the **`gh-pages`** branch, leave the build command
+  empty, and deploy.
+- **Cloudflare Pages**: in the Cloudflare dashboard choose *Workers & Pages → Create →
+  Pages → Connect to Git → sixis45/Sifnos*. Set the production branch to **`gh-pages`**,
+  the framework preset to *None*, and leave the build command empty.
+
+## Deploying the real site
 
 Upload `en/`, `assets/`, `robots.txt` and `sitemap.xml` to the web root so the page is
 served at `https://aggelisvilla-sifnos.gr/en/`. `images/`, `tools/`, `package.json` and
