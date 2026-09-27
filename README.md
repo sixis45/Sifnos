@@ -56,6 +56,14 @@ npm run serve        # then open http://localhost:8080/
 | Phones | Compact hero with a swipeable photo card, booking card, pill facts, swipe rows for photos and island tips, and a fixed bottom bar (call, check availability, section tabs) |
 | Desktop | Full-screen rotating hero with a booking bar, feature ribbon, photo mosaic, and a three-card rates section |
 
+## Search engines: important before going live
+
+The draft carries `<meta name="robots" content="noindex">` in `index.html` (and so in the
+generated `el/index.html`), so the Netlify preview stays out of Google. (The GitHub Pages
+preview gets its own noindex from `tools/build-preview.mjs`.) **Delete that line and run
+`npm run greek` before the site goes live on aggelisvilla-sifnos.gr**, or the real site
+will never show up in search.
+
 ## Photos: important before going live
 
 **The photos come from the design mock-up. They are AI-generated and do not show
