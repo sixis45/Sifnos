@@ -1,5 +1,5 @@
 // Builds the draft preview site into ./preview for GitHub Pages, Netlify or Cloudflare Pages:
-// the English page (/) and Greek page (/el/) with a "Draft preview" label and a no-index tag,
+// the English page (/) and Greek page (/el/) with a "Concept redesign" label and a no-index tag,
 // plus security headers and hosting config. It regenerates the Greek page first.
 //
 //   npm run preview:build
@@ -59,7 +59,7 @@ async function draftPage(file, { assets, familyPill, label, footerEnd, footerNot
     `<link rel="stylesheet" href="${assets}css/styles.css">`,
     `<link rel="stylesheet" href="${assets}css/styles.css">\n  <style>.pill.pill-draft { border: 0; background: #ffdbcc; color: #713718; letter-spacing: 0.04em; text-transform: none; }</style>`);
   html = replaceOnce(html, file, familyPill, `${familyPill}\n            <span class="pill pill-draft">${label}</span>`);
-  html = replaceOnce(html, file, footerEnd, footerEnd.replace('</p>', ` · ${footerNote}</p>`));
+  html = replaceOnce(html, file, footerEnd, footerEnd.replace('</p>', `&nbsp;· ${footerNote}</p>`));
   await writeFile(`${OUT}/${file}`, html);
 }
 
@@ -74,17 +74,17 @@ await cp('en', `${OUT}/en`, { recursive: true }); // old /en/ address forwards t
 await draftPage('index.html', {
   assets: 'assets/',
   familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Family run</span>',
-  label: 'Draft preview · AI placeholder photos',
+  label: 'Concept redesign&nbsp;· not the official site&nbsp;· AI photos',
   footerEnd: 'Artemonas, Sifnos, Greece</p>',
-  footerNote: 'Draft preview, not the live site',
+  footerNote: 'Concept redesign by <a href="https://matejdoljak.com/work/aggelis/">Matej Doljak</a>, not the villa’s official website',
 });
 
 await draftPage('el/index.html', {
   assets: '../assets/',
   familyPill: '<span class="pill pill-family"><span class="pulse-dot" aria-hidden="true"></span>Οικογενειακή φιλοξενία</span>',
-  label: 'Προσχέδιο · ενδεικτικές φωτογραφίες AI',
+  label: 'Πρόταση ανασχεδιασμού&nbsp;· όχι ο επίσημος ιστότοπος&nbsp;· φωτογραφίες AI',
   footerEnd: 'Αρτεμώνας, Σίφνος, Ελλάδα</p>',
-  footerNote: 'Προσχέδιο, όχι ο τελικός ιστότοπος',
+  footerNote: 'Πρόταση ανασχεδιασμού από τον <a href="https://matejdoljak.com/work/aggelis/">Matej Doljak</a>, όχι ο επίσημος ιστότοπος της βίλας',
 });
 
 await writeFile(`${OUT}/_headers`, HEADERS);

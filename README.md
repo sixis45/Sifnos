@@ -111,7 +111,8 @@ for visitors who turn off animations.
 ## Hosting the draft preview
 
 `npm run preview:build` creates `./preview`. That folder holds the site with a
-"Draft preview" label, a no-index tag (so it doesn't compete with the real site in
+"Concept redesign · not the official site" label, a footer note naming Matej Doljak as its
+maker, a no-index tag (so it doesn't compete with the real site in
 Google), security headers (`_headers`) and a `netlify.toml`. The `gh-pages` branch holds
 a copy of it, so every host below serves the same files. When `gh-pages` changes, each
 host updates within a minute or two.
